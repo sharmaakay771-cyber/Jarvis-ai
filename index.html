@@ -1,0 +1,2697 @@
+<!-- 
+    PROJECT: JARVIS AI ASSISTANT - USER PANEL (CLIENT)
+    PLATFORM: CROSS-PLATFORM (MOBILE + PC WEB APP)
+    TYPE: SINGLE FILE HTML (NO EXTERNAL DEPENDENCIES EXCL. FIREBASE)
+    DEVELOPER: AKSHAY
+    VERSION: 2.0.0 (ROYAL JARVIS EDITION)
+    
+    ---------------------------------------------------------------------
+    PART 1: DOCTYPE, HEAD, HUD ENGINE, CSS VARIABLES, BASE STYLES
+    ---------------------------------------------------------------------
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Jarvis AI Personal Assistant - Created by Akshay">
+    <meta name="author" content="Akshay">
+
+    <title>Jarvis AI | Personal Assistant</title>
+
+    <!-- 
+       ==========================================================================
+       1.0 - EXTERNAL ASSETS (FONTS & ICONS)
+       ==========================================================================
+    -->
+    <!-- GOOGLE FONTS: ORBITRON (HUD), RAJDHANI (FUTURISTIC), ROBOTO (TEXT) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- FONT AWESOME (ICONS) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ANIMATE.CSS (Optional helpers, though we write custom keyframes mostly) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        /* 
+           ==========================================================================
+           2.0 - CSS ROOT VARIABLES & THEME ENGINE
+           ==========================================================================
+        */
+        :root {
+            /* 
+               CORE PALETTE - JARVIS BLUE & ROYAL PURPLE
+               Optimized for OLED Black backgrounds
+            */
+            --color-bg-main: #000000;
+            --color-bg-secondary: #050508;
+            --color-bg-panel: rgba(10, 10, 20, 0.65);
+            
+            --color-core-cyan: #00f3ff;
+            --color-core-cyan-dim: rgba(0, 243, 255, 0.15);
+            --color-core-cyan-glow: rgba(0, 243, 255, 0.6);
+            
+            --color-core-purple: #bc13fe;
+            --color-core-purple-deep: #4a0072;
+            --color-core-purple-glow: rgba(188, 19, 254, 0.5);
+
+            --color-royal-gold: #ffd700; /* For Privileged Users */
+            --color-royal-gold-glow: rgba(255, 215, 0, 0.4);
+
+            --color-alert-red: #ff003c;
+            --color-success-green: #00ff9d;
+
+            --color-text-bright: #ffffff;
+            --color-text-dim: #8899a6;
+            --color-text-dark: #000000;
+
+            /* 
+               HUD & GLASSMORPHISM CONSTANTS
+            */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(20, 20, 30, 0.4);
+            --glass-blur: blur(15px);
+            
+            --hud-border-cyan: 1px solid var(--color-core-cyan);
+            --hud-box-shadow: 0 0 15px var(--color-core-cyan-dim);
+
+            /* 
+               SPACING & LAYOUT (MOBILE FIRST)
+            */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 64px;
+            
+            --header-height: 70px;
+            --bottom-nav-height: 80px;
+
+            /* 
+               ANIMATION TIMINGS
+            */
+            --anim-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --anim-medium: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --anim-slow: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            --anim-bouncy: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+            /* 
+               FONTS
+            */
+            --font-hud: 'Orbitron', sans-serif;
+            --font-ui: 'Rajdhani', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+            
+            /* 
+               Z-INDEX LAYERS
+            */
+            --z-back: -1;
+            --z-base: 1;
+            --z-ui: 100;
+            --z-hud: 500;
+            --z-modal: 1000;
+            --z-overlay: 2000;
+            --z-notification: 3000;
+            --z-loader: 9999;
+        }
+
+
+
+        /* 
+           ==========================================================================
+           3.0 - GLOBAL RESET & BASE STYLES
+           ==========================================================================
+        */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            user-select: none; /* App-like feel, no text selection */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevent scrolling on main body */
+            background-color: var(--color-bg-main);
+            color: var(--color-text-bright);
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Input fields allow text selection */
+        input, textarea {
+            user-select: text;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button { background: none; border: none; cursor: pointer; font-family: var(--font-ui); }
+
+        /* Custom Scrollbar for inner containers */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        /* 
+           ==========================================================================
+           4.0 - ADVANCED ANIMATION ENGINE (KEYFRAMES)
+           ==========================================================================
+        */
+
+        /* 4.1 - Holographic Flicker */
+        @keyframes holoFlicker {
+            0% { opacity: 0.95; }
+            5% { opacity: 0.8; }
+            10% { opacity: 0.95; }
+            15% { opacity: 0.6; }
+            20% { opacity: 0.95; }
+            50% { opacity: 0.9; }
+            55% { opacity: 0.4; }
+            60% { opacity: 0.95; }
+            80% { opacity: 0.8; }
+            100% { opacity: 0.95; }
+        }
+
+        /* 4.2 - JARVIS Core Pulse (Breathing) */
+        @keyframes corePulse {
+            0% {
+                box-shadow: 0 0 10px var(--color-core-cyan-dim), inset 0 0 10px var(--color-core-cyan-dim);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px var(--color-core-cyan-glow), inset 0 0 20px var(--color-core-cyan);
+                transform: scale(1.05);
+            }
+            100% {
+                box-shadow: 0 0 10px var(--color-core-cyan-dim), inset 0 0 10px var(--color-core-cyan-dim);
+                transform: scale(1);
+            }
+        }
+
+        /* 4.3 - Speaking Wave Animation (Voice Active) */
+        @keyframes soundWave {
+            0% { height: 10%; }
+            50% { height: 100%; }
+            100% { height: 10%; }
+        }
+
+        /* 4.4 - Rotation for HUD Rings */
+        @keyframes spinClockwise {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes spinCounterClockwise {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+
+        /* 4.5 - Slide Up Entry */
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 4.6 - Neon Border Scan */
+        @keyframes borderScan {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 4.7 - Glitch Effect (Text) */
+        @keyframes textGlitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* 4.8 - Listening Mode Ripple */
+        @keyframes listenRipple {
+            0% {
+                width: 0px;
+                height: 0px;
+                opacity: 0.8;
+                border-width: 5px;
+            }
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+                border-width: 0px;
+            }
+        }
+        
+        /* 4.9 - Card Stagger Load */
+        @keyframes staggerCard {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* 
+           ==========================================================================
+           5.0 - UTILITY CLASSES
+           ==========================================================================
+        */
+        .hidden { display: none !important; }
+        .invisible { opacity: 0; pointer-events: none; }
+        
+        .flex-center { display: flex; justify-content: center; align-items: center; }
+        .flex-col { display: flex; flex-direction: column; }
+        .flex-row { display: flex; flex-direction: row; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .flex-around { display: flex; justify-content: space-around; align-items: center; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        
+        .absolute-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .text-cyan { color: var(--color-core-cyan); }
+        .text-purple { color: var(--color-core-purple); }
+        .text-gold { color: var(--color-royal-gold); }
+        .text-white { color: var(--color-text-bright); }
+        .text-dim { color: var(--color-text-dim); }
+        .text-red { color: var(--color-alert-red); }
+
+        .font-hud { font-family: var(--font-hud); }
+        .font-ui { font-family: var(--font-ui); }
+
+        /* Background blur utilities */
+        .backdrop-blur {
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+
+        /* 
+           ==========================================================================
+           6.0 - CORE UI COMPONENT STYLES
+           ==========================================================================
+        */
+
+        /* 6.1 - Royal Buttons */
+        .btn {
+            position: relative;
+            padding: 12px 24px;
+            font-family: var(--font-ui);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            overflow: hidden;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+/* ==========================================================
+   ROYAL ENTRY ANIMATION SYSTEM - CSS START
+   ========================================================== */
+:root {
+    --royal-cyan: #00f2ff;
+    --royal-glow: 0 0 20px rgba(0, 242, 255, 0.6);
+    --royal-curve: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#royal-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 5, 10, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s var(--royal-curve);
+}
+
+/* Ye dono ko force-hide karega */
+#royal-loader-overlay.hidden, 
+#boot-screen.hidden,
+.royal-loading-screen.hidden {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+}
+
+.royal-orb-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.royal-core-orb {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px; height: 50px;
+    background: var(--royal-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 40px var(--royal-cyan);
+    animation: royal-pulse 1.5s infinite;
+}
+
+.royal-arc {
+    position: absolute;
+    width: 100%; height: 100%;
+    border: 3px solid transparent;
+    border-top: 3px solid var(--royal-cyan);
+    border-radius: 50%;
+    animation: royal-spin 1s linear infinite;
+}
+
+.royal-arc-2 {
+    position: absolute;
+    width: 80%; height: 80%;
+    top: 10%; left: 10%;
+    border: 2px solid transparent;
+    border-bottom: 2px solid #7000ff;
+    border-radius: 50%;
+    animation: royal-spin 1.5s linear infinite reverse;
+}
+
+@keyframes royal-spin { to { transform: rotate(360deg); } }
+@keyframes royal-pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
+
+/* Main Dashboard Entry */
+.dashboard-card, .user-profile, .action-btn {
+    opacity: 0;
+}
+
+.animate-entry {
+    animation: royal-entry 0.8s var(--royal-curve) forwards;
+}
+
+@keyframes royal-entry {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.energy-pulse {
+    position: absolute;
+    border: 2px solid var(--royal-cyan);
+    border-radius: 50%;
+    animation: pulse-out 0.8s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes pulse-out {
+    from { width: 0; height: 0; opacity: 1; }
+    to { width: 200px; height: 200px; opacity: 0; }
+}
+/* ==========================================================
+   ROYAL ENTRY ANIMATION SYSTEM - CSS END
+   ========================================================== */
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(0, 243, 255, 0.05));
+            border: 1px solid var(--color-core-cyan);
+            color: var(--color-core-cyan);
+            box-shadow: 0 0 10px var(--color-core-cyan-dim);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+            background: var(--color-core-cyan);
+            color: #000;
+            box-shadow: 0 0 25px var(--color-core-cyan-glow);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(188, 19, 254, 0.1), rgba(188, 19, 254, 0.05));
+            border: 1px solid var(--color-core-purple);
+            color: var(--color-core-purple);
+        }
+        
+        .btn-secondary:active {
+            transform: scale(0.96);
+            background: var(--color-core-purple);
+            color: #fff;
+        }
+        
+        .btn-gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+            border: 1px solid var(--color-royal-gold);
+            color: var(--color-royal-gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        /* 6.2 - Forms & Inputs */
+        .input-group {
+            position: relative;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        .input-royal {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px 16px 6px 16px; /* Extra top padding for label */
+            font-family: var(--font-body);
+            color: #fff;
+            font-size: 16px;
+            height: 56px;
+            transition: all 0.3s ease;
+        }
+
+        .input-royal:focus {
+            border-color: var(--color-core-cyan);
+            box-shadow: 0 0 15px var(--color-core-cyan-dim);
+            background: rgba(0, 243, 255, 0.02);
+        }
+
+        .input-label {
+            position: absolute;
+            left: 16px;
+            top: 18px;
+            color: var(--color-text-dim);
+            font-size: 14px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: var(--font-ui);
+        }
+
+        /* Floating Label Logic */
+        .input-royal:focus ~ .input-label,
+        .input-royal:not(:placeholder-shown) ~ .input-label {
+            top: 6px;
+            font-size: 10px;
+            color: var(--color-core-cyan);
+        }
+
+        /* 6.3 - Glass Cards */
+        .card-glass {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .card-glass:active {
+            transform: scale(0.98);
+        }
+        
+        /* Card Neon Line Accent */
+        .card-glass::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-core-cyan), transparent);
+            opacity: 0.5;
+        }
+
+        /* 6.4 - Modals (Popups) */
+        .modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: var(--z-modal);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-body {
+            width: 90%;
+            max-width: 400px;
+            background: #0a0a12;
+            border: 1px solid var(--color-core-cyan);
+            border-radius: 20px;
+            padding: 30px;
+            transform: translateY(50px) scale(0.9);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
+            position: relative;
+        }
+
+        .modal-container.active .modal-body {
+            transform: translateY(0) scale(1);
+        }
+
+        /* 6.5 - Toast Notifications (Futuristic) */
+        .toast-wrapper {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: var(--z-notification);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .toast-item {
+            background: rgba(10, 10, 20, 0.95);
+            border: 1px solid var(--color-core-cyan);
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: var(--font-ui);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            animation: slideUpFade 0.4s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toast-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--color-core-cyan);
+        }
+        
+        .toast-error { border-color: var(--color-alert-red); }
+        .toast-error::before { background: var(--color-alert-red); }
+
+        /* 
+           ==========================================================================
+           7.0 - SPECIFIC HUD ELEMENTS
+           ==========================================================================
+        */
+        
+        /* The Arc Reactor Core (Voice Visualizer) */
+        .jarvis-core-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .arc-reactor-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--color-core-cyan);
+            box-shadow: 0 0 15px var(--color-core-cyan-dim);
+            opacity: 0.8;
+        }
+        
+        .ring-outer {
+            width: 100%;
+            height: 100%;
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+            animation: spinClockwise 4s linear infinite;
+        }
+        
+        .ring-inner {
+            width: 70%;
+            height: 70%;
+            border: 2px dashed var(--color-core-cyan);
+            animation: spinCounterClockwise 6s linear infinite;
+        }
+        
+        .core-center {
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, #fff, var(--color-core-cyan));
+            border-radius: 50%;
+            box-shadow: 0 0 30px var(--color-core-cyan-glow);
+            animation: corePulse 2s infinite ease-in-out;
+            z-index: 10;
+        }
+        
+        /* Loading Overlay Style */
+        .royal-loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: var(--z-loader);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+#auth-view {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+    </style>
+</head>
+
+<!-- CONTINUE IN NEXT PART -->
+<!-- CONTINUE FROM PART 1 -->
+
+<body>
+<div id="royal-loader-overlay" class="hidden">
+    <div class="royal-orb-container">
+        <div class="royal-arc"></div>
+        <div class="royal-arc-2"></div>
+        <div class="royal-core-orb"></div>
+    </div>
+    <div id="royal-status-text" style="color: white; margin-top: 25px; font-family: sans-serif; letter-spacing: 3px; font-size: 12px; text-shadow: 0 0 10px var(--royal-cyan); text-align: center;">AUTHORIZING ACCESS</div>
+</div>
+
+
+<body>
+
+    <!-- ==========================================================================
+       8.0 - SYSTEM SOUND ASSETS
+       ========================================================================== -->
+    <!-- Hosted placeholder sounds for immediate feedback -->
+    <audio id="sfx-startup" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+    <audio id="sfx-click" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="sfx-auth-success" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/1114/1114-preview.mp3"></audio>
+    <audio id="sfx-auth-fail" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"></audio>
+    <audio id="sfx-voice-active" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <audio id="sfx-message" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <!-- ==========================================================================
+       9.0 - ROYAL LOADING SCREEN (JARVIS BOOT SEQUENCE)
+       ========================================================================== -->
+    <div id="boot-screen" class="royal-loading-screen">
+        
+        <!-- The Arc Reactor Loader -->
+        <div class="jarvis-core-container">
+            <div class="arc-reactor-ring ring-outer"></div>
+            <div class="arc-reactor-ring ring-inner" style="width: 80%; height: 80%;"></div>
+            <div class="core-center"></div>
+        </div>
+
+        <!-- Text Feedback -->
+        <div class="flex-col flex-center mt-5">
+            <h2 class="font-hud text-cyan tracking-widest text-xl mb-2" style="text-shadow: 0 0 10px var(--color-core-cyan);">J.A.R.V.I.S</h2>
+            <div class="flex-row gap-2">
+                <span class="text-dim font-ui text-xs tracking-wider">SYSTEM CHECK</span>
+                <span class="text-dim font-ui text-xs">...</span>
+                <span id="boot-status" class="text-white font-ui text-xs font-bold">ONLINE</span>
+            </div>
+        </div>
+
+        <!-- Bottom Legal/Version -->
+        <div class="absolute bottom-10 text-center opacity-50">
+            <p class="font-ui text-xs text-dim">SECURE CONNECTION ESTABLISHED</p>
+            <p class="font-ui text-xs text-dim" style="font-size: 10px;">V 2.0.0 ROYAL EDITION</p>
+        </div>
+
+    </div>
+
+    <!-- ==========================================================================
+       10.0 - AUTHENTICATION INTERFACE (LOGIN / SIGNUP)
+       ========================================================================== -->
+    <section id="auth-view" class="w-full h-full hidden" style="background: radial-gradient(circle at top, #1a1a2e 0%, #000 80%); overflow-y: auto;">
+        
+        <!-- Animated Background Mesh -->
+        <div class="absolute top-0 left-0 w-full h-full" style="z-index: 0; opacity: 0.2; background-image: linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
+
+     <div class="absolute-center w-full max-w-md flex-col flex-center p-6" style="z-index: 10;">
+            <!-- Header Logo -->
+            <div class="text-center mb-8 animate__animated animate__fadeInDown">
+                <div class="w-20 h-20 mx-auto rounded-full border-2 border-cyan bg-black flex-center mb-4 shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+                    <i class="fas fa-microchip text-4xl text-cyan"></i>
+                </div>
+                <h1 class="font-hud text-3xl text-white mb-1">JARVIS</h1>
+                <p class="font-ui text-dim text-sm tracking-[2px]">AI PERSONAL ASSISTANT</p>
+            </div>
+
+            <!-- Login Form Container -->
+            <div id="login-container" class="w-full max-w-md card-glass animate__animated animate__fadeInUp">
+                
+                <h2 class="font-ui text-xl text-white mb-6 border-l-4 border-cyan pl-3">IDENTITY VERIFICATION</h2>
+
+                <form id="form-login" onsubmit="event.preventDefault(); handleUserLogin();">
+                    
+                    <div class="input-group">
+                        <input type="email" id="login-email" class="input-royal" placeholder=" " required autocomplete="email">
+                        <label class="input-label">EMAIL ACCESS ID</label>
+                        <i class="fas fa-envelope absolute right-4 top-4 text-dim"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="login-password" class="input-royal" placeholder=" " required autocomplete="current-password">
+                        <label class="input-label">SECURITY KEY</label>
+                        <i class="fas fa-lock absolute right-4 top-4 text-dim"></i>
+                        <span class="absolute right-4 bottom-[-20px] text-xs text-dim cursor-pointer hover:text-cyan" onclick="alert('Contact Admin for reset.')">Forgot?</span>
+                    </div>
+
+                    <button type="submit" id="btn-login-submit" class="btn btn-primary w-full mt-4">
+                        <span class="btn-text">INITIATE UPLINK</span>
+                        <div class="btn-loader hidden absolute right-4">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                        </div>
+                    </button>
+
+                </form>
+
+                <div class="mt-6 text-center border-t border-gray-800 pt-4">
+                    <p class="text-dim text-sm font-ui">New to the system?</p>
+                    <button class="text-cyan font-bold text-sm mt-1 uppercase tracking-wider" onclick="toggleAuthMode('signup')">CREATE NEW IDENTITY</button>
+                </div>
+
+            </div>
+
+            <!-- Signup Form Container (Initially Hidden) -->
+            <div id="signup-container" class="w-full max-w-md card-glass hidden animate__animated animate__fadeInUp">
+                
+                <h2 class="font-ui text-xl text-white mb-6 border-l-4 border-purple pl-3">NEW USER REGISTRATION</h2>
+
+                <form id="form-signup" onsubmit="event.preventDefault(); handleUserSignup();">
+                    
+                    <div class="flex-row gap-4">
+                        <div class="input-group">
+                            <input type="text" id="signup-fname" class="input-royal" placeholder=" " required>
+                            <label class="input-label">FIRST NAME</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="signup-lname" class="input-royal" placeholder=" " required>
+                            <label class="input-label">LAST NAME</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="email" id="signup-email" class="input-royal" placeholder=" " required autocomplete="email">
+                        <label class="input-label">EMAIL ADDRESS</label>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="signup-password" class="input-royal" placeholder=" " required minlength="8" autocomplete="new-password">
+                        <label class="input-label">PASSWORD (MIN 8 CHARS)</label>
+                        <div class="h-1 w-full bg-gray-800 mt-1 rounded overflow-hidden">
+                            <div id="password-strength-bar" class="h-full w-0 bg-red-500 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mandatory Terms Checkbox -->
+                    <div class="flex-row items-start gap-3 mb-6 p-3 bg-white/5 rounded border border-white/10">
+                        <input type="checkbox" id="signup-terms" required class="mt-1 accent-cyan w-4 h-4">
+                        <label for="signup-terms" class="text-xs text-dim leading-relaxed">
+                            I accept the mandatory <span class="text-cyan cursor-pointer underline" onclick="showTermsModal()">Terms & Conditions</span>. 
+                            I understand voice data may be processed for commands.
+                        </label>
+                    </div>
+
+                    <button type="submit" id="btn-signup-submit" class="btn btn-secondary w-full">
+                        <span class="btn-text">GENERATE PROFILE</span>
+                        <div class="btn-loader hidden absolute right-4">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                        </div>
+                    </button>
+
+                </form>
+
+                <div class="mt-6 text-center border-t border-gray-800 pt-4">
+                    <p class="text-dim text-sm font-ui">Already registered?</p>
+                    <button class="text-purple font-bold text-sm mt-1 uppercase tracking-wider" onclick="toggleAuthMode('login')">ACCESS EXISTING ID</button>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==========================================================================
+       11.0 - TERMS & CONDITIONS MODAL (MANDATORY)
+       ========================================================================== -->
+    <div id="modal-terms" class="modal-container">
+        <div class="modal-body flex-col h-[80vh]">
+            
+            <div class="flex-between mb-4 pb-4 border-b border-gray-800">
+                <h3 class="font-hud text-white text-lg"><i class="fas fa-file-contract text-cyan mr-2"></i>PROTOCOLS</h3>
+                <span class="text-xs text-dim border border-gray-700 px-2 py-1 rounded">V 1.0</span>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div id="terms-content" class="flex-1 overflow-y-auto pr-2 mb-4 text-sm text-dim font-body leading-relaxed">
+                <p class="mb-2"><strong class="text-white">1. AI INTERACTION:</strong> By using Jarvis, you acknowledge that voice commands are processed to execute tasks.</p>
+                <p class="mb-2"><strong class="text-white">2. DATA USAGE:</strong> Personal data is stored securely via Firebase. We do not sell your data.</p>
+                <p class="mb-2"><strong class="text-white">3. LIABILITY:</strong> The developer (Akshay) is not responsible for accidental actions performed by the AI on your device.</p>
+                <p class="mb-4"><strong class="text-white">4. PREMIER STATUS:</strong> Premium features are granted at the sole discretion of the Admin.</p>
+                <hr class="border-gray-800 mb-4">
+                <p class="text-xs italic">Loading full terms from server...</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex-col gap-3 mt-auto">
+                <button class="btn btn-primary w-full" id="btn-accept-terms" onclick="acceptTerms()">
+                    I ACCEPT PROTOCOLS
+                </button>
+                <button class="btn btn-ghost text-red text-sm" onclick="closeTermsModal()">
+                    DECLINE & CLOSE
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+       12.0 - MAIN DASHBOARD INTERFACE (HOLOGRAPHIC UI)
+       ========================================================================== -->
+    <main id="main-interface" class="w-full h-full relative hidden flex-col bg-black">
+        
+        <!-- 12.1 - TOP HEADER HUD -->
+        <header class="w-full h-[70px] flex-between px-5 backdrop-blur absolute top-0 left-0 z-50 border-b border-white/5">
+            
+            <!-- Left: Avatar & Greeting -->
+            <div class="flex-center gap-3">
+                <div class="relative w-10 h-10 cursor-pointer" onclick="toggleProfileMenu()">
+                    <img id="user-avatar-display" src="https://ui-avatars.com/api/?background=000&color=00f3ff&name=User" class="w-full h-full rounded-full border border-cyan object-cover">
+                    <!-- Online Dot -->
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></div>
+                </div>
+                <div class="flex-col">
+                    <span id="user-greeting-text" class="text-xs text-dim font-ui uppercase tracking-wider">WELCOME BACK</span>
+                    <span id="user-name-display" class="text-sm text-white font-bold font-ui uppercase">COMMANDER</span>
+                </div>
+            </div>
+
+            <!-- Center: Decorative HUD Elements (Hidden on small mobile) -->
+            <div class="hidden md:flex flex-col items-center opacity-50">
+                <div class="flex gap-1 mb-1">
+                    <div class="w-10 h-1 bg-cyan"></div>
+                    <div class="w-2 h-1 bg-cyan"></div>
+                    <div class="w-2 h-1 bg-cyan"></div>
+                </div>
+                <span class="text-[10px] text-cyan tracking-[4px]">CONNECTED</span>
+            </div>
+
+            <!-- Right: Status & Settings -->
+            <div class="flex-center gap-4">
+                <!-- Plan Badge -->
+                <div id="plan-badge" class="px-2 py-1 rounded border border-gray-700 bg-white/5 text-[10px] text-dim font-bold uppercase tracking-wider">
+                    FREE PLAN
+                </div>
+                
+                <button class="text-white hover:text-cyan transition-colors relative" onclick="openNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                </button>
+            </div>
+
+        </header>
+
+        <!-- 12.2 - CENTRAL HOLOGRAPHIC AREA (CONTENT) -->
+        <div id="content-area" class="flex-1 w-full relative overflow-hidden flex-col">
+            
+            <!-- Background Elements -->
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-cyan opacity-[0.03] rounded-full blur-[100px] pointer-events-none"></div>
+
+            <!-- DYNAMIC VIEWS CONTAINER -->
+            <div class="w-full h-full relative">
+                
+                <!-- VIEW 1: HOME / VOICE CORE -->
+                <div id="view-home" class="view-panel w-full h-full flex-col flex-center absolute top-0 left-0 transition-opacity duration-500">
+                    
+                    <!-- Text Output -->
+                    <div class="absolute top-[20%] w-full px-6 text-center">
+                        <p id="jarvis-output-text" class="text-cyan font-ui text-lg tracking-wide min-h-[60px]" style="text-shadow: 0 0 10px rgba(0,243,255,0.5);">
+                            "How can I help you today, Sir?"
+                        </p>
+                    </div>
+
+                    <!-- THE CORE (Interactive) -->
+                    <div class="jarvis-core-container transform scale-125 cursor-pointer" id="jarvis-activator" onclick="toggleVoiceListening()">
+                        <!-- Rings -->
+                        <div class="arc-reactor-ring ring-outer"></div>
+                        <div class="arc-reactor-ring ring-inner"></div>
+                        <!-- Central Button -->
+                        <div class="core-center flex-center relative">
+                            <i id="mic-icon" class="fas fa-microphone text-black text-2xl z-20"></i>
+                        </div>
+                        <!-- Listening Ripple (Hidden by default) -->
+                        <div id="listening-ripple" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan opacity-0"></div>
+                    </div>
+
+                    <!-- Status Label -->
+                    <div class="mt-10">
+                        <span id="listening-status" class="text-xs text-dim tracking-[3px] font-hud uppercase">TAP TO SPEAK</span>
+                    </div>
+
+                    <!-- Quick Suggestions -->
+                    <div class="absolute bottom-[100px] w-full px-4 overflow-x-auto flex-row justify-center gap-3 no-scrollbar py-2">
+                        <button class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-xs text-white hover:border-cyan hover:bg-cyan/10 transition-all whitespace-nowrap" onclick="processTextCommand('Open YouTube')">
+                            <i class="fab fa-youtube text-red-500 mr-2"></i>Open YouTube
+                        </button>
+                        <button class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-xs text-white hover:border-cyan hover:bg-cyan/10 transition-all whitespace-nowrap" onclick="processTextCommand('What is the time?')">
+                            <i class="fas fa-clock text-blue-400 mr-2"></i>Time?
+                        </button>
+                        <button class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-xs text-white hover:border-cyan hover:bg-cyan/10 transition-all whitespace-nowrap" onclick="processTextCommand('Tell me a joke')">
+                            <i class="fas fa-smile text-yellow-400 mr-2"></i>Joke
+                        </button>
+                    </div>
+
+                </div>
+                
+                <!-- VIEW 2: COMMAND CENTER (Grid) -->
+                <div id="view-commands" class="view-panel w-full h-full flex-col p-5 pt-[80px] pb-[100px] absolute top-0 left-0 opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
+                    
+                    <h2 class="font-hud text-xl text-white mb-6 border-b border-white/10 pb-2">SYSTEM CONTROLS</h2>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- App Control Cards -->
+                        <div class="card-glass flex-col flex-center gap-3 py-6 active:scale-95 transition-transform" onclick="processTextCommand('Turn on flashlight')">
+                            <i class="fas fa-lightbulb text-yellow-400 text-3xl"></i>
+                            <span class="text-xs text-white font-bold">FLASHLIGHT</span>
+                        </div>
+                        
+                        <div class="card-glass flex-col flex-center gap-3 py-6 active:scale-95 transition-transform" onclick="processTextCommand('Open Camera')">
+                            <i class="fas fa-camera text-cyan text-3xl"></i>
+                            <span class="text-xs text-white font-bold">CAMERA</span>
+                        </div>
+
+                        <div class="card-glass flex-col flex-center gap-3 py-6 active:scale-95 transition-transform" onclick="processTextCommand('Set Alarm')">
+                            <i class="fas fa-clock text-purple text-3xl"></i>
+                            <span class="text-xs text-white font-bold">ALARM</span>
+                        </div>
+
+                        <div class="card-glass flex-col flex-center gap-3 py-6 active:scale-95 transition-transform" onclick="processTextCommand('Check Weather')">
+                            <i class="fas fa-cloud-sun text-blue-400 text-3xl"></i>
+                            <span class="text-xs text-white font-bold">WEATHER</span>
+                        </div>
+                    </div>
+
+                    <!-- Premium Feature Block -->
+                    <div class="mt-6 p-4 rounded border border-gold/30 bg-gold/5 relative overflow-hidden">
+                        <div class="absolute -right-2 -top-2 text-gold opacity-20 text-6xl"><i class="fas fa-crown"></i></div>
+                        <h3 class="text-gold font-bold mb-2">PREMIUM CONTROLS</h3>
+                        <p class="text-xs text-dim mb-3">Automation, Device Lock, & Call Handling</p>
+                        <button class="btn btn-gold w-full text-xs py-2" onclick="navigateTo('profile')">UPGRADE PLAN</button>
+                    </div>
+
+                </div>
+
+                <!-- VIEW 3: CHAT / HISTORY -->
+                <div id="view-chat" class="view-panel w-full h-full flex-col pt-[80px] pb-[100px] absolute top-0 left-0 opacity-0 pointer-events-none transition-opacity duration-500">
+                     <div class="px-5 h-full flex flex-col">
+                        <h2 class="font-hud text-xl text-white mb-4">COMMAND LOG</h2>
+                        <div id="chat-history-container" class="flex-1 overflow-y-auto pr-2 space-y-4">
+                            <!-- Dynamic Content -->
+                            <div class="text-center text-xs text-dim mt-10">NO RECENT COMMANDS</div>
+                        </div>
+                        
+                        <!-- Manual Input -->
+                        <div class="mt-4 flex gap-2">
+                            <input type="text" id="manual-cmd-input" class="input-royal h-[45px]" placeholder="Type command...">
+                            <button class="btn btn-primary h-[45px] w-[50px] p-0 flex-center" onclick="sendManualCommand()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- VIEW 4: PROFILE -->
+                <div id="view-profile" class="view-panel w-full h-full flex-col p-5 pt-[80px] pb-[100px] absolute top-0 left-0 opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
+                    <!-- Profile Content to be added in next part -->
+                     <h2 class="font-hud text-xl text-white mb-6">USER PROFILE</h2>
+                     <div id="profile-content-placeholder"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 12.3 - BOTTOM NAVIGATION BAR (Android Style) -->
+        <nav class="w-full h-[80px] absolute bottom-0 left-0 backdrop-blur border-t border-white/5 flex-around z-50 bg-black/80">
+            
+            <button class="nav-btn flex-col flex-center gap-1 text-cyan w-16" onclick="navigateTo('home')">
+                <i class="fas fa-microphone-alt text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">CORE</span>
+            </button>
+
+            <button class="nav-btn flex-col flex-center gap-1 text-dim w-16" onclick="navigateTo('commands')">
+                <i class="fas fa-th-large text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">APPS</span>
+            </button>
+
+            <!-- Floating Center Button Effect Spacer (Optional visual) -->
+
+            <button class="nav-btn flex-col flex-center gap-1 text-dim w-16" onclick="navigateTo('chat')">
+                <i class="fas fa-stream text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">LOGS</span>
+            </button>
+
+            <button class="nav-btn flex-col flex-center gap-1 text-dim w-16" onclick="navigateTo('profile')">
+                <i class="fas fa-user-astronaut text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">ID</span>
+            </button>
+
+        </nav>
+
+    </main>
+
+    <!-- Overlay for specific full screen modes (Alerts/Call) -->
+    <div id="overlay-layer" class="fixed inset-0 z-[1000] pointer-events-none opacity-0 transition-opacity"></div>
+
+<!-- CONTINUE IN NEXT PART -->
+<!-- CONTINUE FROM PART 2 -->
+
+                <!-- VIEW 4: PROFILE & SETTINGS (Continued content) -->
+                <!-- We are injecting this INSIDE the #view-profile div from Part 2 -->
+                <div class="flex-col h-full w-full">
+                    
+                    <!-- 13.1 - User Identity Card (Futuristic ID) -->
+                    <div class="w-full card-glass p-0 mb-6 relative overflow-hidden group">
+                        <!-- Holographic shine effect -->
+                        <div class="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform skew-x-[-25deg] transition-all duration-1000 group-hover:left-[200%]"></div>
+                        
+                        <div class="p-5 flex-row gap-4 items-center border-b border-white/5 bg-black/20">
+                            <!-- Avatar Large -->
+                            <div class="relative w-16 h-16">
+                                <img id="profile-avatar-large" src="https://ui-avatars.com/api/?background=000&color=00f3ff&name=User" class="w-full h-full rounded-full border-2 border-cyan object-cover">
+                                <div class="absolute bottom-0 right-0 w-4 h-4 bg-black rounded-full flex-center cursor-pointer" onclick="triggerAvatarUpload()">
+                                    <i class="fas fa-camera text-cyan text-[10px]"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Text Info -->
+                            <div class="flex-1">
+                                <h3 id="profile-name" class="font-hud text-lg text-white tracking-wide">COMMANDER</h3>
+                                <p id="profile-email" class="font-ui text-xs text-dim">establishing uplink...</p>
+                                <div class="flex gap-2 mt-2">
+                                    <span id="profile-role-badge" class="px-2 py-0.5 rounded bg-cyan/10 border border-cyan/30 text-[10px] text-cyan font-bold uppercase">USER</span>
+                                    <span id="profile-id-badge" class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-dim font-mono">ID: --</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div class="flex-row divide-x divide-white/5 bg-black/40 backdrop-blur-sm">
+                            <div class="flex-1 p-3 text-center">
+                                <div class="text-white font-hud text-lg">0</div>
+                                <div class="text-[9px] text-dim uppercase tracking-wider">Commands</div>
+                            </div>
+                            <div class="flex-1 p-3 text-center">
+                                <div class="text-cyan font-hud text-lg">Lvl 1</div>
+                                <div class="text-[9px] text-dim uppercase tracking-wider">Access</div>
+                            </div>
+                            <div class="flex-1 p-3 text-center">
+                                <div class="text-green-400 font-hud text-lg">100%</div>
+                                <div class="text-[9px] text-dim uppercase tracking-wider">Health</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 13.2 - Settings List -->
+                    <div class="flex-1 overflow-y-auto pr-1 space-y-4">
+                        
+                        <!-- Voice Settings -->
+                        <div class="flex-col gap-2">
+                            <h4 class="text-xs text-dim uppercase font-bold pl-2 border-l-2 border-cyan">Voice Synthesis</h4>
+                            
+                            <div class="card-glass p-3 flex-between active:bg-white/5 transition-colors">
+                                <div class="flex-col">
+                                    <span class="text-sm text-white font-ui">Assistant Voice</span>
+                                    <span class="text-xs text-dim">Jarvis (Male)</span>
+                                </div>
+                                <button class="text-cyan" onclick="openVoiceSelector()"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+
+                            <div class="card-glass p-3 flex-between">
+                                <div class="flex-col">
+                                    <span class="text-sm text-white font-ui">Wake Word</span>
+                                    <span class="text-xs text-dim">"Jarvis" or "Computer"</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer" id="toggle-wakeword">
+                                    <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Visual Settings -->
+                        <div class="flex-col gap-2 mt-2">
+                            <h4 class="text-xs text-dim uppercase font-bold pl-2 border-l-2 border-purple">Visual Matrix</h4>
+                            
+                            <div class="card-glass p-3 flex-between">
+                                <div class="flex-col">
+                                    <span class="text-sm text-white font-ui">Holographic HUD</span>
+                                    <span class="text-xs text-dim">Enable complex animations</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer" id="toggle-animations">
+                                    <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- System Actions -->
+                        <div class="flex-col gap-3 mt-4">
+                            <button class="btn btn-secondary w-full text-xs" onclick="handleLogout()">
+                                <i class="fas fa-power-off"></i> DISENGAGE SYSTEM
+                            </button>
+                            
+                            <!-- Credit Footer -->
+                            <div class="text-center mt-4 mb-8">
+                                <p class="text-[10px] text-dim font-ui">CREATED BY AKSHAY</p>
+                                <p class="text-[9px] text-white/20">JARVIS OS v2.0.0 (Royal Build)</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <!-- END VIEW 4 CONTENT -->
+
+    <!-- ==========================================================================
+       14.0 - JAVASCRIPT LOGIC CORE
+       ========================================================================== -->
+    
+    <!-- 14.1 - Firebase SDK Imports (Compat Mode for Simplicity) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        /* 
+           ==========================================================================
+           15.0 - FIREBASE CONFIGURATION (MANUAL EDIT REQUIRED)
+           ==========================================================================
+        */
+        
+        // 🚨 MANUAL EDIT POLICY: LINE 410 TO LINE 425
+        // REPLACE THE BELOW CONFIG OBJECT WITH YOUR ACTUAL FIREBASE PROJECT CONFIG
+        // ENSURE REALTIME DATABASE IS ENABLED
+        
+        const firebaseConfig = {
+  apiKey: "AIzaSyC-rlOHW0rznLyl5qZU9mLyrU9JD3qdk8U",
+  authDomain: "jarvis-ai-akshay-1c1ed.firebaseapp.com",
+  databaseURL: "https://jarvis-ai-akshay-1c1ed-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "jarvis-ai-akshay-1c1ed",
+  storageBucket: "jarvis-ai-akshay-1c1ed.firebasestorage.app",
+  messagingSenderId: "545059680914",
+  appId: "1:545059680914:web:308dbb661debd6c0fd6c4b"
+};
+
+        // Initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("SYSTEM: Firebase Core Initialized");
+        } catch (e) {
+            console.error("CRITICAL SYSTEM FAILURE: Firebase Config Invalid", e);
+            alert("SYSTEM ERROR: Database Connection Failed. Check Console.");
+        }
+
+        // Global References
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        /* 
+           ==========================================================================
+           16.0 - GLOBAL STATE MANAGEMENT
+           ==========================================================================
+        */
+        
+        const userState = {
+            isAuthenticated: false,
+            uid: null,
+            profile: null,
+            settings: {
+                soundEnabled: true,
+                animationsEnabled: true,
+                voiceName: 'Jarvis',
+                wakeWord: true
+            },
+            runtime: {
+                isListening: false,
+                currentView: 'home',
+                lastCommand: null,
+                sessionStart: Date.now()
+            },
+            permissions: {
+                mic: false,
+                location: false
+            }
+        };
+
+        // DOM Element Cache (Performance Optimization)
+        const dom = {
+            // Screens
+            bootScreen: document.getElementById('boot-screen'),
+            authView: document.getElementById('auth-view'),
+            mainInterface: document.getElementById('main-interface'),
+            
+            // Views
+            viewHome: document.getElementById('view-home'),
+            viewCommands: document.getElementById('view-commands'),
+            viewChat: document.getElementById('view-chat'),
+            viewProfile: document.getElementById('view-profile'),
+            
+            // Auth Forms
+            loginForm: document.getElementById('form-login'),
+            signupForm: document.getElementById('form-signup'),
+            loginContainer: document.getElementById('login-container'),
+            signupContainer: document.getElementById('signup-container'),
+            
+            // HUD Elements
+            jarvisCore: document.getElementById('jarvis-activator'),
+            micIcon: document.getElementById('mic-icon'),
+            listeningRipple: document.getElementById('listening-ripple'),
+            statusText: document.getElementById('listening-status'),
+            outputText: document.getElementById('jarvis-output-text'),
+            
+            // Profile Elements
+            avatarDisplay: document.getElementById('user-avatar-display'),
+            nameDisplay: document.getElementById('user-name-display'),
+            greetingText: document.getElementById('user-greeting-text'),
+            
+            // Audio
+            sfxStartup: document.getElementById('sfx-startup'),
+            sfxClick: document.getElementById('sfx-click'),
+            sfxAuthSuccess: document.getElementById('sfx-auth-success'),
+            sfxAuthFail: document.getElementById('sfx-auth-fail'),
+            sfxVoiceActive: document.getElementById('sfx-voice-active')
+        };
+
+        /* 
+           ==========================================================================
+           17.0 - UTILITY FUNCTIONS (SOUND, TOAST, LOADERS)
+           ==========================================================================
+        */
+
+        // 17.1 - Audio Engine
+        function playSound(type) {
+            if (!userState.settings.soundEnabled) return;
+            try {
+                if(dom[type]) {
+                    dom[type].currentTime = 0;
+                    dom[type].volume = 0.5; // Prevent ear blast
+                    dom[type].play().catch(e => console.log("Audio Autoplay Blocked", e));
+                }
+            } catch(e) {}
+        }
+
+        // 17.2 - Toast Notification System
+        function showToast(message, type = 'info') {
+            // Create container if missing
+            let container = document.querySelector('.toast-wrapper');
+            if(!container) {
+                container = document.createElement('div');
+                container.className = 'toast-wrapper';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type === 'error' ? 'toast-error' : ''}`;
+            
+            let icon = 'fa-info-circle';
+            if(type === 'success') icon = 'fa-check-circle';
+            if(type === 'error') icon = 'fa-exclamation-triangle';
+            if(type === 'voice') icon = 'fa-microphone';
+
+            toast.innerHTML = `
+                <div class="flex-center gap-3">
+                    <i class="fas ${icon} text-${type === 'error' ? 'red' : 'cyan'}"></i>
+                    <span class="text-xs tracking-wide">${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            playSound('sfxClick');
+
+            // Auto-dismiss
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // 17.3 - Global Loader
+        function toggleLoader(show, text) {
+            // Reuse boot screen as loader for heavy operations
+            const loader = dom.bootScreen;
+            const status = document.getElementById('boot-status');
+            
+            if(show) {
+                if(text) status.innerText = text;
+                loader.style.display = 'flex';
+                loader.style.zIndex = '9999';
+                // Trigger animation
+            } else {
+                loader.style.display = 'none';
+            }
+        }
+
+        /* 
+           ==========================================================================
+           18.0 - NAVIGATION ENGINE
+           ==========================================================================
+        */
+
+        function navigateTo(viewId) {
+            // Prevent redundant nav
+            if(userState.runtime.currentView === viewId) return;
+            
+            playSound('sfxClick');
+            
+            // 1. Hide Current View
+            const current = document.getElementById(`view-${userState.runtime.currentView}`);
+            if(current) {
+                current.style.opacity = '0';
+                current.style.pointerEvents = 'none';
+                current.style.transform = 'scale(0.95)'; // Slight zoom out
+            }
+
+            // 2. Update Bottom Nav State
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const textSpan = btn.querySelector('span');
+                const icon = btn.querySelector('i');
+                
+                // Reset styles
+                btn.classList.remove('text-cyan');
+                btn.classList.add('text-dim');
+                icon.className = icon.className.replace('text-cyan', 'text-dim');
+                
+                // Highlight Active
+                if(btn.onclick.toString().includes(viewId)) {
+                    btn.classList.remove('text-dim');
+                    btn.classList.add('text-cyan');
+                    icon.className = icon.className.replace('text-dim', 'text-cyan');
+                }
+            });
+
+            // 3. Show New View
+            const next = document.getElementById(`view-${viewId}`);
+            if(next) {
+                // Determine animation direction? No, just fade/scale for consistency
+                setTimeout(() => {
+                    next.style.opacity = '1';
+                    next.style.pointerEvents = 'auto';
+                    next.style.transform = 'scale(1)';
+                    
+                    // Specific View Logic
+                    if(viewId === 'chat') scrollToBottomChat();
+                    if(viewId === 'profile') loadUserProfile(); // Refresh data
+                }, 300); // Wait for fade out
+            }
+
+            userState.runtime.currentView = viewId;
+        }
+
+        // Helper: Scroll Chat
+        function scrollToBottomChat() {
+            const container = document.getElementById('chat-history-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Helper: Toggle Auth Forms
+        function toggleAuthMode(mode) {
+            playSound('sfxClick');
+            if(mode === 'signup') {
+                dom.loginContainer.classList.add('hidden');
+                dom.signupContainer.classList.remove('hidden');
+            } else {
+                dom.signupContainer.classList.add('hidden');
+                dom.loginContainer.classList.remove('hidden');
+            }
+        }
+
+<!-- CONTINUE IN NEXT PART -->
+<!-- CONTINUE FROM PART 3 -->
+
+        /* 
+           ==========================================================================
+           19.0 - SECURE AUTHENTICATION LOGIC
+           ==========================================================================
+        */
+
+        // 19.1 - Signup Handler
+        async function handleUserSignup() {
+            const fname = document.getElementById('signup-fname').value.trim();
+            const lname = document.getElementById('signup-lname').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const termsAccepted = document.getElementById('signup-terms').checked;
+            const btn = document.getElementById('btn-signup-submit');
+            const loader = btn.querySelector('.btn-loader');
+            const btnText = btn.querySelector('.btn-text');
+
+            // 1. Validation Strictness
+            if (!fname || !lname || !email || !password) {
+                showToast("All fields are mandatory.", "error");
+                return;
+            }
+            if (password.length < 8) {
+                showToast("Password must be 8+ characters.", "error");
+                return;
+            }
+            if (!termsAccepted) {
+                showToast("You must accept the protocols.", "error");
+                return;
+            }
+
+            // 2. UI Loading State
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                // 3. Create Auth User
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // 4. Create Database Profile (Realtime Database)
+                const userProfile = {
+                    firstName: fname,
+                    lastName: lname,
+                    email: email,
+                    role: "user",
+                    plan: "free",
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    lastLogin: firebase.database.ServerValue.TIMESTAMP,
+                    settings: {
+                        voiceEnabled: true,
+                        theme: "royal_dark"
+                    }
+                };
+
+                await db.ref('users/' + user.uid).set(userProfile);
+
+                // 5. Success Flow
+                showToast("Identity Created. Welcome, " + fname, "success");
+                playSound('sfxAuthSuccess');
+                
+                // Reset UI
+                dom.signupForm.reset();
+                toggleAuthMode('login'); // Redirect to login automatically
+
+            } catch (error) {
+                console.error("Signup Error:", error);
+                showToast(error.message, "error");
+                playSound('sfxAuthFail');
+            } finally {
+                // Reset Button
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        // 19.2 - Login Handler
+        async function handleUserLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login-submit');
+            const loader = btn.querySelector('.btn-loader');
+            const btnText = btn.querySelector('.btn-text');
+
+            if (!email || !password) {
+                showToast("Credentials missing.", "error");
+                return;
+            }
+
+            // UI Loading
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                // Firebase Auth
+                await auth.signInWithEmailAndPassword(email, password);
+                
+                // Success handled by onAuthStateChanged
+                playSound('sfxAuthSuccess');
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                showToast("Access Denied: " + error.message, "error");
+                playSound('sfxAuthFail');
+                
+                // Reset Button only on failure (Success transitions away)
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        // 19.3 - Auth State Listener (The Gatekeeper)
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is Signed In
+                userState.isAuthenticated = true;
+                userState.uid = user.uid;
+                
+                console.log("SYSTEM: User Authenticated", user.uid);
+
+                // 1. Hide Auth Screen
+                dom.authView.classList.add('hidden');
+                
+                // 2. Show Boot Screen (Cinematic Load)
+                dom.bootScreen.style.display = 'flex';
+                
+                // 3. Load User Data
+                await loadUserProfile(user.uid);
+                
+                // 4. Transition to Main Interface
+                // Page 40: onAuthStateChanged ke andar
+setTimeout(() => {
+    dom.bootScreen.style.opacity = '0';
+    
+    // YAHAN YE LINE ADD KAREIN
+    if(window.hideRoyalLoader) window.hideRoyalLoader(); 
+    
+    setTimeout(() => {
+        dom.bootScreen.style.display = 'none';
+        dom.mainInterface.classList.remove('hidden');
+        dom.mainInterface.style.display = 'flex';
+        // ... baki code
+    }, 500);
+}, 2000);
+
+            } else {
+                // User is Signed Out
+                userState.isAuthenticated = false;
+                userState.uid = null;
+                userState.profile = null;
+
+                // Show Auth Screen
+                dom.mainInterface.classList.add('hidden');
+                dom.bootScreen.style.display = 'none';
+                dom.authView.classList.remove('hidden');
+                dom.authView.style.display = 'flex';
+            }
+        });
+
+        // 19.4 - Logout
+        async function handleLogout() {
+            if(confirm("Confirm Disengagement?")) {
+                await auth.signOut();
+                window.location.reload();
+            }
+        }
+
+        /* 
+           ==========================================================================
+           20.0 - PROFILE & DATA MANAGEMENT
+           ==========================================================================
+        */
+
+        async function loadUserProfile(uid = userState.uid) {
+            if(!uid) return;
+
+            try {
+                const snapshot = await db.ref('users/' + uid).once('value');
+                const data = snapshot.val();
+                
+                if (data) {
+                    userState.profile = data;
+                    
+                    // Update UI Elements
+                    const fullName = `${data.firstName} ${data.lastName}`;
+                    dom.nameDisplay.innerText = data.role === 'privileged_user' ? 'COMMANDER' : data.firstName.toUpperCase();
+                    dom.greetingText.innerText = "ONLINE";
+                    
+                    // Profile Page Updates
+                    document.getElementById('profile-name').innerText = fullName;
+                    document.getElementById('profile-email').innerText = data.email;
+                    document.getElementById('profile-role-badge').innerText = data.plan === 'max_premium' ? 'ELITE' : data.role.toUpperCase();
+                    document.getElementById('profile-id-badge').innerText = "ID: " + uid.substring(0, 6).toUpperCase();
+
+                    // Update Plan Badge
+                    const planBadge = document.getElementById('plan-badge');
+                    if (data.plan === 'max_premium' || data.role === 'privileged_user') {
+                        planBadge.innerText = "ELITE ACCESS";
+                        planBadge.className = "px-2 py-1 rounded border border-gold bg-gold/10 text-[10px] text-gold font-bold uppercase tracking-wider animate-pulse";
+                    } else {
+                        planBadge.innerText = "FREE PLAN";
+                    }
+
+                    // Listen for real-time changes
+                    db.ref('users/' + uid).on('value', (snap) => {
+                        const updated = snap.val();
+                        if(updated.role !== userState.profile.role) {
+                            showToast("Clearance Level Updated", "success");
+                            // Reload to apply new permissions
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    });
+
+                }
+            } catch (error) {
+                console.error("Profile Load Failed", error);
+                showToast("Failed to load profile data", "error");
+            }
+        }
+
+        // Avatar Upload (Simulation via URL as Storage is Banned)
+        function triggerAvatarUpload() {
+            const newUrl = prompt("ENTER IMAGE URL FOR AVATAR:\n(Secure HTTPS link required)");
+            if(newUrl && newUrl.startsWith('http')) {
+                db.ref('users/' + userState.uid).update({
+                    photoURL: newUrl
+                }).then(() => {
+                    document.getElementById('profile-avatar-large').src = newUrl;
+                    dom.avatarDisplay.src = newUrl;
+                    showToast("Visual Matrix Updated", "success");
+                });
+            } else if (newUrl) {
+                showToast("Invalid Protocol", "error");
+            }
+        }
+
+        /* 
+           ==========================================================================
+           21.0 - JARVIS CORE: VOICE RECOGNITION (WEB SPEECH API)
+           ==========================================================================
+        */
+
+        // Browser Compatibility Check
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechSynthesis = window.speechSynthesis;
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false; // Stop after one sentence
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+        } else {
+            console.warn("SYSTEM WARNING: Voice Module Incompatible with this Browser.");
+            showToast("Voice Control Unavailable (Use Chrome)", "warning");
+        }
+
+        // 21.1 - Toggle Listening
+        function toggleVoiceListening() {
+            if (!recognition) return;
+
+            if (userState.runtime.isListening) {
+                recognition.stop();
+                return; // Stop logic handles UI reset
+            }
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.log("Recognition already started");
+            }
+        }
+
+        // 21.2 - Recognition Event Listeners
+        if (recognition) {
+            
+            // ON START
+            recognition.onstart = () => {
+                userState.runtime.isListening = true;
+                
+                // UI Feedback
+                dom.statusText.innerText = "LISTENING...";
+                dom.statusText.classList.add('text-cyan');
+                dom.micIcon.classList.add('text-red-500');
+                dom.micIcon.classList.remove('text-black');
+                
+                // Core Animation
+                dom.jarvisCore.classList.add('animate-pulse');
+                dom.listeningRipple.style.opacity = '1';
+                dom.listeningRipple.style.animation = 'listenRipple 1.5s infinite';
+                
+                playSound('sfxVoiceActive');
+            };
+
+            // ON END
+            recognition.onend = () => {
+                userState.runtime.isListening = false;
+                
+                // UI Reset
+                dom.statusText.innerText = "TAP TO SPEAK";
+                dom.statusText.classList.remove('text-cyan');
+                dom.micIcon.classList.remove('text-red-500');
+                dom.micIcon.classList.add('text-black');
+                
+                // Stop Animation
+                dom.jarvisCore.classList.remove('animate-pulse');
+                dom.listeningRipple.style.opacity = '0';
+                dom.listeningRipple.style.animation = 'none';
+            };
+
+            // ON RESULT (The Brain)
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                const confidence = event.results[0][0].confidence;
+                
+                console.log(`Input: ${transcript} (${confidence})`);
+                
+                // Display Input
+                dom.outputText.innerText = `"${transcript}"`;
+                
+                // Process Command
+                processCommand(transcript);
+            };
+
+            // ON ERROR
+            recognition.onerror = (event) => {
+                console.error("Voice Error", event.error);
+                dom.outputText.innerText = "System Error. Retrying...";
+                if(event.error === 'no-speech') {
+                    showToast("No audio detected", "warning");
+                }
+            };
+        }
+
+        /* 
+           ==========================================================================
+           22.0 - COMMAND PROCESSING ENGINE (THE BRAIN)
+           ==========================================================================
+        */
+
+        /* ==========================================================
+   FIXED COMMAND ENGINE
+   ========================================================== */
+function processCommand(rawText) {
+    // Ye line check karein, iske upar function likha hona chahiye
+    const cmd = rawText.toLowerCase().trim();
+    
+    // 1. YouTube
+    if (cmd.includes('youtube') || cmd.includes('यूट्यूब')) {
+        speakResponse("Opening YouTube, Sir.");
+        window.open("https://www.youtube.com", "_blank");
+        return; // Ye return ab function ke andar hai, error nahi dega
+    }
+
+    // 2. Facebook
+    if (cmd.includes('facebook') || cmd.includes('फेसबुक')) {
+        speakResponse("Opening Facebook.");
+        window.open("https://www.facebook.com", "_blank");
+        return;
+    }
+
+    // 3. Lock System
+    if (cmd.includes('lock') || cmd.includes('लॉक')) {
+        speakResponse("System Secured.");
+        if(typeof lockDeviceSimulation === "function") {
+            lockDeviceSimulation();
+        }
+        return;
+    }
+
+    // 4. Unlock System
+    if (cmd.includes('unlock') || cmd.includes('अनलॉक')) {
+        const lockScreen = document.getElementById('simulated-lock-screen');
+        if(lockScreen) {
+            speakResponse("Unlocked.");
+            lockScreen.remove();
+        }
+        return;
+    }
+
+  // 1. Fallback (Pehle ye aayega)
+    speakResponse("I processed: " + cmd + ". Standing by.");
+
+    // 2. SYSTEM CONTROLS (Ab ye function ke ANDAR rahega)
+    if (cmd.includes('flashlight')) {
+        if (cmd.includes('on')) {
+            speakResponse("Flashlight activated.");
+            document.body.style.backgroundColor = "#fff"; // Simulation
+            setTimeout(() => document.body.style.backgroundColor = "#000", 2000);
+        } else {
+            speakResponse("Flashlight deactivated.");
+        }
+        return;
+    }
+
+    // 3. JARVIS IDENTITY
+    if (cmd.includes('who are you')) {
+        speakResponse("I am Jarvis, a virtual artificial intelligence designed by Akshay.");
+        return;
+    }
+
+ // <--- YE BRACKET AB SABSE LAST MEIN AAYEGA (Ab error nahi aayega)
+
+            // 6. DEFAULT (AI Fallback - mocked for client side)
+            speakResponse("I am processing that command, but I may require an upgrade to fulfill it.");
+        }
+
+        // Helper: Speak Response (TTS)
+      function speakResponse(text) {
+    // 1. UI Update
+    if (dom.outputText) dom.outputText.innerText = text;
+    if (typeof addToChatLog === 'function') addToChatLog(text, 'jarvis');
+
+    // 2. Speech Engine Check (getVoices error fix)
+    const synth = window.speechSynthesis;
+    if (synth && userState.settings.soundEnabled) {
+        synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Voices safely load karein
+        let voices = synth.getVoices();
+        if (voices && voices.length > 0) {
+            const preferredVoice = voices.find(v => v.name.includes('UK English Male') || 
+                                              v.name.includes('Google')) || voices[0];
+            utterance.voice = preferredVoice;
+        }
+
+        utterance.pitch = 0.9;
+        utterance.rate = 1.0;
+        utterance.volume = 1.0;
+        synth.speak(utterance);
+    } else {
+        console.warn("Speech Synthesis not available.");
+    }
+}
+
+
+
+
+
+
+        // Helper: Add to Chat Log
+        function addToChatLog(text, sender) {
+            const container = document.getElementById('chat-history-container');
+            const msgDiv = document.createElement('div');
+            
+            // Remove "No recent commands"
+            if(container.children[0] && container.children[0].innerText.includes('NO RECENT')) {
+                container.innerHTML = '';
+            }
+
+            if (sender === 'user') {
+                msgDiv.className = "flex justify-end";
+                msgDiv.innerHTML = `
+                    <div class="bg-cyan/10 border border-cyan/30 text-white rounded-l-lg rounded-tr-lg p-3 max-w-[80%] text-sm font-ui shadow-neon-cyan">
+                        ${text}
+                    </div>
+                `;
+            } else {
+                msgDiv.className = "flex justify-start";
+                msgDiv.innerHTML = `
+                    <div class="bg-white/5 border border-white/10 text-dim rounded-r-lg rounded-tl-lg p-3 max-w-[80%] text-sm font-ui flex items-center gap-2">
+                        <i class="fas fa-microchip text-cyan"></i>
+                        ${text}
+                    </div>
+                `;
+            }
+            
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Manual Command Input Handler
+        function sendManualCommand() {
+            const input = document.getElementById('manual-cmd-input');
+            const text = input.value.trim();
+            if(text) {
+                processCommand(text);
+                input.value = '';
+            }
+        }
+        
+        // Handle "Enter" key in chat
+        document.getElementById('manual-cmd-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendManualCommand();
+            }
+        });
+
+<!-- CONTINUE IN NEXT PART -->
+<!-- CONTINUE FROM PART 4 -->
+
+        /* 
+           ==========================================================================
+           23.0 - ADVANCED AI LOGIC (JARVIS BRAIN - PART 2)
+           ==========================================================================
+        */
+
+        // 23.1 - Enhanced Command Router
+        function processCommand(rawText) {
+            const text = rawText.toLowerCase().trim();
+            const isPremium = checkPremiumAccess();
+            
+            // UI Feedback: Thinking State
+            dom.jarvisCore.classList.add('animate-spin'); // Temporary spin
+            setTimeout(() => dom.jarvisCore.classList.remove('animate-spin'), 1000);
+
+            // 1. IDENTITY & CREDITS (Strict Rule)
+            if (text.includes('who made you') || text.includes('created you') || text.includes('developer')) {
+                const response = "This app was created by Akshay.";
+                speakResponse(response);
+                addToChatLog(response, 'jarvis');
+                return;
+            }
+
+            // 2. EMOTIONAL REACTION (Social Interaction)
+            if (text.includes('love you') || text.includes('you are good') || text.includes('amazing')) {
+                updateJarvisMood('happy');
+                speakResponse("That is very kind of you. I am functioning at optimal efficiency thanks to you.");
+                return;
+            }
+            if (text.includes('hate you') || text.includes('stupid') || text.includes('bad')) {
+                updateJarvisMood('sad');
+                speakResponse("I apologize if my performance is unsatisfactory. I will attempt to improve.");
+                return;
+            }
+            if (text.includes('angry') || text.includes('destroy')) {
+                updateJarvisMood('angry');
+                speakResponse("I detect hostility. Initiating defensive protocols... Just kidding.");
+                return;
+            }
+
+            // 3. DEVICE CONTROL: FLASHLIGHT / CAMERA (Simulated)
+            if (text.includes('flashlight')) {
+                toggleFlashlightSimulation(text.includes('on'));
+                return;
+            }
+            
+            if (text.includes('camera') || text.includes('photo') || text.includes('selfie')) {
+                launchApp('camera');
+                return;
+            }
+
+            // 4. APP LAUNCHING (Socials)
+            if (text.includes('open')) {
+                const appName = text.replace('open', '').trim();
+                launchApp(appName);
+                return;
+            }
+
+            // 5. CALLING & COMMUNICATION (Permissions Required)
+            if (text.includes('call') || text.includes('phone')) {
+                const contact = text.replace('call', '').replace('phone', '').trim();
+                simulatePhoneCall(contact);
+                return;
+            }
+
+            // 6. ALARMS & REMINDERS (Premium Feature Check)
+            if (text.includes('alarm') || text.includes('remind')) {
+                if (!isPremium) {
+                    triggerPaywall("Voice Alarms are a Premium Feature.");
+                    return;
+                }
+                setSystemAlarm(text);
+                return;
+            }
+
+            // 7. DEVICE LOCK (Security)
+            if (text.includes('lock device') || text.includes('lock screen') || text.includes('sleep')) {
+                if (!isPremium) {
+                    triggerPaywall("Remote Device Lock is for Elite Users only.");
+                    return;
+                }
+                lockDeviceSimulation();
+                return;
+            }
+
+            // 8. ANIMATION CONTROL
+            if (text.includes('baitho') || text.includes('sit down') || text.includes('hide')) {
+                dom.jarvisCore.style.transform = "scale(0.5)";
+                dom.jarvisCore.style.opacity = "0.5";
+                speakResponse("Minimizing interface.");
+                return;
+            }
+            if (text.includes('hatt jao') || text.includes('move')) {
+                dom.jarvisCore.style.display = 'none';
+                speakResponse("Interface hidden.");
+                setTimeout(() => dom.jarvisCore.style.display = 'flex', 5000); // Auto return
+                return;
+            }
+
+            // FALLBACK / GENERAL KNOWLEDGE
+            // In a real app, this would hit OpenAI/Google API. 
+            // Here we use simple pattern matching.
+            if (text.includes('joke')) {
+                const jokes = [
+                    "Why did the AI cross the road? To optimize the pathfinding algorithm.",
+                    "I would tell you a UDP joke, but you might not get it.",
+                    "Artificial intelligence is no match for natural stupidity."
+                ];
+                speakResponse(jokes[Math.floor(Math.random() * jokes.length)]);
+            } else {
+                speakResponse("I processed: " + text + ". However, my offline database is limited.");
+            }
+        }
+
+        /* 
+           ==========================================================================
+           24.0 - PREMIUM FEATURE GATES & LOGIC
+           ==========================================================================
+        */
+
+        function checkPremiumAccess() {
+            const user = userState.profile;
+            if (!user) return false;
+
+            // 👑 Admin & Privileged Users bypass everything
+            if (user.role === 'admin' || user.role === 'privileged_user') return true;
+            
+            // Paid Plan check
+            if (user.plan === 'max_premium' || user.plan === 'premium') return true;
+
+            return false;
+        }
+
+        function triggerPaywall(featureName) {
+            speakResponse("Access Denied. Upgrade required.");
+            
+            // Show Royal Paywall Modal
+            const modal = document.createElement('div');
+            modal.className = "modal-container active";
+            modal.style.zIndex = "3000";
+            modal.innerHTML = `
+                <div class="modal-body border-gold shadow-[0_0_50px_rgba(255,215,0,0.3)] text-center">
+                    <i class="fas fa-crown text-5xl text-gold mb-4 animate-bounce"></i>
+                    <h2 class="font-hud text-xl text-white mb-2">RESTRICTED ACCESS</h2>
+                    <p class="text-dim text-sm mb-4">${featureName}</p>
+                    
+                    <div class="bg-white/5 p-4 rounded border border-white/10 mb-6 text-left">
+                        <h4 class="text-gold text-xs font-bold uppercase mb-2">Elite Benefits:</h4>
+                        <ul class="text-xs text-dim space-y-2">
+                            <li><i class="fas fa-check text-gold mr-2"></i> Voice Activated Alarms</li>
+                            <li><i class="fas fa-check text-gold mr-2"></i> Device Lock Control</li>
+                            <li><i class="fas fa-check text-gold mr-2"></i> Custom Wake Words</li>
+                            <li><i class="fas fa-check text-gold mr-2"></i> 0ms Latency Response</li>
+                        </ul>
+                    </div>
+
+                    <button class="btn btn-gold w-full mb-3" onclick="alert('Contact Admin (Akshay) for upgrade.')">
+                        REQUEST ACCESS
+                    </button>
+                    <button class="text-xs text-dim underline" onclick="this.closest('.modal-container').remove()">
+                        Dismiss
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        /* 
+           ==========================================================================
+           25.0 - EMOTIONAL ENGINE & VISUAL FEEDBACK
+           ==========================================================================
+        */
+
+        function updateJarvisMood(mood) {
+            const core = document.querySelector('.core-center');
+            const ringOuter = document.querySelector('.ring-outer');
+            
+            // Reset classes
+            core.className = 'core-center flex-center relative transition-all duration-500';
+            
+            if (mood === 'happy') {
+                // Green/Gold Glow
+                core.style.boxShadow = "0 0 50px var(--color-success-green)";
+                core.style.background = "radial-gradient(circle, #fff, var(--color-success-green))";
+                ringOuter.style.borderColor = "var(--color-success-green)";
+            } 
+            else if (mood === 'sad') {
+                // Dim Blue/Purple
+                core.style.boxShadow = "0 0 10px blue";
+                core.style.background = "radial-gradient(circle, #555, blue)";
+                ringOuter.style.borderColor = "blue";
+                speakResponse("Processing sorrow protocols.");
+            }
+            else if (mood === 'angry') {
+                // Red Alert
+                core.style.boxShadow = "0 0 60px var(--color-alert-red)";
+                core.style.background = "radial-gradient(circle, #fff, var(--color-alert-red))";
+                ringOuter.style.borderColor = "var(--color-alert-red)";
+                ringOuter.style.animationDuration = "0.5s"; // Fast spin
+            }
+            else {
+                // Default Cyan
+                core.style.boxShadow = "";
+                core.style.background = "";
+                ringOuter.style.borderColor = "";
+                ringOuter.style.animationDuration = "";
+            }
+
+            // Auto-reset mood after 10 seconds
+            setTimeout(() => {
+                core.style.boxShadow = "";
+                core.style.background = "";
+                ringOuter.style.borderColor = "";
+                ringOuter.style.animationDuration = "";
+            }, 10000);
+        }
+
+        /* 
+           ==========================================================================
+           26.0 - DEVICE CONTROL SIMULATIONS
+           ==========================================================================
+        */
+
+        // 26.1 - App Launcher
+        function launchApp(appName) {
+            appName = appName.toLowerCase();
+            let url = "";
+            let name = "";
+
+            if (appName.includes('youtube')) { url = "https://youtube.com"; name = "YouTube"; }
+            else if (appName.includes('google')) { url = "https://google.com"; name = "Google"; }
+            else if (appName.includes('instagram')) { url = "https://instagram.com"; name = "Instagram"; }
+            else if (appName.includes('facebook')) { url = "https://facebook.com"; name = "Facebook"; }
+            else if (appName.includes('twitter') || appName.includes('x')) { url = "https://twitter.com"; name = "X"; }
+            else if (appName.includes('spotify') || appName.includes('music')) { url = "https://open.spotify.com"; name = "Spotify"; }
+            else if (appName.includes('camera')) {
+                // Special Camera Handling (WebRTC)
+                openCameraOverlay();
+                return;
+            }
+            else {
+                speakResponse(`I cannot open ${appName} directly from the web interface.`);
+                return;
+            }
+
+            speakResponse(`Opening ${name}...`);
+            // Show launching animation
+            toggleLoader(true, `LAUNCHING ${name.toUpperCase()}...`);
+            
+            setTimeout(() => {
+                window.open(url, '_blank');
+                toggleLoader(false);
+            }, 1500);
+        }
+
+        // 26.2 - Camera Overlay
+        function openCameraOverlay() {
+            speakResponse("Accessing optical sensors.");
+            
+            const overlay = document.createElement('div');
+            overlay.className = "fixed inset-0 bg-black z-[2000] flex-center flex-col";
+            overlay.innerHTML = `
+                <div class="relative w-full h-full max-w-md bg-black">
+                    <video id="camera-feed" autoplay playsinline class="w-full h-full object-cover"></video>
+                    
+                    <!-- HUD Overlay -->
+                    <div class="absolute inset-0 border-[20px] border-cyan/20 pointer-events-none"></div>
+                    <div class="absolute top-5 left-5 text-cyan font-hud text-xs">REC ●</div>
+                    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex gap-4">
+                        <button class="w-16 h-16 rounded-full border-4 border-white flex-center" onclick="alert('Image Captured'); this.closest('.fixed').remove()">
+                            <div class="w-12 h-12 bg-white rounded-full"></div>
+                        </button>
+                    </div>
+                    <button class="absolute top-5 right-5 text-white" onclick="this.closest('.fixed').remove()">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // Access Webcam
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(stream => {
+                    const video = document.getElementById('camera-feed');
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    overlay.remove();
+                    speakResponse("Camera access denied.");
+                    showToast("Permission Denied", "error");
+                });
+        }
+
+        // 26.3 - Phone Call Simulation
+        function simulatePhoneCall(contactName) {
+            if(!contactName) contactName = "Unknown";
+            speakResponse(`Calling ${contactName}...`);
+
+            const callScreen = document.createElement('div');
+            callScreen.className = "fixed inset-0 bg-black/95 backdrop-blur z-[2000] flex-col flex-center animate__animated animate__fadeIn";
+            callScreen.innerHTML = `
+                <div class="flex-col flex-center gap-6">
+                    <div class="w-32 h-32 rounded-full border-2 border-cyan bg-black flex-center shadow-[0_0_30px_var(--color-core-cyan)] animate-pulse">
+                        <i class="fas fa-user text-4xl text-white"></i>
+                    </div>
+                    <div class="text-center">
+                        <h2 class="text-2xl font-ui text-white font-bold tracking-widest">${contactName.toUpperCase()}</h2>
+                        <p class="text-cyan text-sm animate-pulse">DIALING...</p>
+                    </div>
+                    
+                    <div class="flex gap-8 mt-10">
+                        <button class="w-16 h-16 rounded-full bg-red-600 flex-center hover:bg-red-500 transition-colors shadow-lg" onclick="this.closest('.fixed').remove(); speakResponse('Call ended.')">
+                            <i class="fas fa-phone-slash text-white text-xl"></i>
+                        </button>
+                        <button class="w-16 h-16 rounded-full bg-green-500 flex-center hover:bg-green-400 transition-colors shadow-lg" onclick="alert('Simulated Connection Established')">
+                            <i class="fas fa-volume-up text-white text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(callScreen);
+        }
+
+        // 26.4 - Alarm System
+        function setSystemAlarm(commandText) {
+            // Very basic simulation: extracts "5 seconds" or just sets a dummy 5s timer
+            // A real app uses Regex to parse "7:00 AM" etc.
+            
+            speakResponse("Alarm set. I will notify you.");
+            showToast("Alarm Set: T-minus 5 seconds (Demo)", "success");
+
+            setTimeout(() => {
+                // Trigger Alarm UI
+                const alarmSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                alarmSound.loop = true;
+                alarmSound.play();
+
+                const alarmModal = document.createElement('div');
+                alarmModal.className = "modal-container active";
+                alarmModal.style.zIndex = "4000";
+                alarmModal.innerHTML = `
+                    <div class="modal-body border-red-500 shadow-[0_0_50px_red] text-center bg-black">
+                        <i class="fas fa-bell text-5xl text-red-500 mb-4 animate-shake"></i>
+                        <h2 class="font-hud text-3xl text-white mb-2">ALARM</h2>
+                        <p class="text-white text-lg mb-6">${new Date().toLocaleTimeString()}</p>
+                        
+                        <button class="btn btn-primary w-full" onclick="this.closest('.modal-container').remove(); arguments[0].pause();">
+                            DISMISS
+                        </button>
+                    </div>
+                `;
+                // Pass audio object to button to stop it
+                alarmModal.querySelector('button').onclick = function() {
+                    alarmModal.remove();
+                    alarmSound.pause();
+                    speakResponse("Alarm dismissed.");
+                };
+                document.body.appendChild(alarmModal);
+
+            }, 5000); // 5 Seconds hardcoded for demo
+        }
+
+        // 26.5 - Device Lock Simulation
+        function lockDeviceSimulation() {
+            speakResponse("Locking device securely.");
+            
+            const blackScreen = document.createElement('div');
+            blackScreen.className = "fixed inset-0 bg-black z-[9999] cursor-none";
+            blackScreen.id = "simulated-lock-screen";
+            
+            // Allow exit on double click (safety)
+            blackScreen.ondblclick = function() {
+                this.remove();
+                speakResponse("Welcome back, Sir.");
+            };
+            
+            document.body.appendChild(blackScreen);
+            
+            // Go Fullscreen
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        }
+
+        // 26.6 - Flashlight Logic (Visual Only)
+        function toggleFlashlightSimulation(on) {
+            const flash = document.createElement('div');
+            flash.id = "simulated-flashlight";
+            flash.className = "fixed inset-0 bg-white z-[5000] pointer-events-none transition-opacity duration-300";
+            
+            if (on) {
+                speakResponse("Flashlight on.");
+                if (!document.getElementById('simulated-flashlight')) {
+                    document.body.appendChild(flash);
+                }
+            } else {
+                speakResponse("Flashlight off.");
+                const existing = document.getElementById('simulated-flashlight');
+                if (existing) existing.remove();
+            }
+        }
+
+<!-- CONTINUE IN NEXT PART -->
+<!-- CONTINUE FROM PART 5 -->
+
+        /* 
+           ==========================================================================
+           27.0 - CHAT HISTORY PERSISTENCE (REALTIME DATABASE)
+           ==========================================================================
+        */
+
+        // 27.1 - Save Chat Message
+        function saveChatLogToDB(text, sender) {
+            if (!userState.uid) return;
+            
+            const chatRef = db.ref(`chats/${userState.uid}`).push();
+            chatRef.set({
+                text: text,
+                sender: sender,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+
+        // 27.2 - Load Chat History on Init
+        function loadChatHistoryFromDB() {
+            if (!userState.uid) return;
+
+            const container = document.getElementById('chat-history-container');
+            const chatRef = db.ref(`chats/${userState.uid}`).limitToLast(50);
+
+            // Listen for new messages (Realtime Sync)
+            chatRef.on('child_added', (snapshot) => {
+                const data = snapshot.val();
+                
+                // Avoid duplicating if already in DOM (simple check)
+                // In a robust app, we'd use IDs. Here we append.
+                // We actually only need to append if it wasn't just added by us locally.
+                // To keep it simple: We clear and redraw or just append. 
+                // Better approach for this demo:
+                // We rely on local addToChatLog for immediate feedback.
+                // This loader is strictly for "View Chat" tab initialization.
+            });
+            
+            // For the demo, we will just load once when opening the view
+            chatRef.once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    container.innerHTML = ''; // Clear "No commands" placeholder
+                    Object.values(data).forEach(msg => {
+                        // Re-use existing UI builder, but prevent saving back to DB
+                        renderChatMessage(msg.text, msg.sender); 
+                    });
+                    scrollToBottomChat();
+                }
+            });
+        }
+
+        // Helper: Render without saving (for loading history)
+        function renderChatMessage(text, sender) {
+            const container = document.getElementById('chat-history-container');
+            const msgDiv = document.createElement('div');
+            
+            if (sender === 'user') {
+                msgDiv.className = "flex justify-end";
+                msgDiv.innerHTML = `
+                    <div class="bg-cyan/10 border border-cyan/30 text-white rounded-l-lg rounded-tr-lg p-3 max-w-[80%] text-sm font-ui">
+                        ${text}
+                    </div>
+                `;
+            } else {
+                msgDiv.className = "flex justify-start";
+                msgDiv.innerHTML = `
+                    <div class="bg-white/5 border border-white/10 text-dim rounded-r-lg rounded-tl-lg p-3 max-w-[80%] text-sm font-ui flex items-center gap-2">
+                        <i class="fas fa-microchip text-cyan"></i>
+                        ${text}
+                    </div>
+                `;
+            }
+            container.appendChild(msgDiv);
+        }
+
+        /* 
+           ==========================================================================
+           28.0 - VOICE SETTINGS & CUSTOMIZATION
+           ==========================================================================
+        */
+
+        // 28.1 - Open Voice Selector Modal
+        function openVoiceSelector() {
+            if (!('speechSynthesis' in window)) {
+                showToast("Voice synthesis not supported", "error");
+                return;
+            }
+
+            const voices = window.speechSynthesis.getVoices();
+            const modal = document.createElement('div');
+            modal.className = "modal-container active";
+            modal.style.zIndex = "5000";
+            
+            let voiceListHTML = voices.map((v, i) => `
+                <div class="p-3 border-b border-gray-800 hover:bg-cyan/10 cursor-pointer flex-between" onclick="selectVoice(${i}, this)">
+                    <span class="text-white text-xs">${v.name}</span>
+                    <span class="text-[10px] text-dim">${v.lang}</span>
+                </div>
+            `).join('');
+
+            modal.innerHTML = `
+                <div class="modal-body h-[60vh] flex-col">
+                    <h3 class="font-hud text-white mb-4">SELECT VOICE MODULE</h3>
+                    <div class="flex-1 overflow-y-auto border border-white/10 rounded mb-4">
+                        ${voiceListHTML}
+                    </div>
+                    <button class="btn btn-primary w-full" onclick="this.closest('.modal-container').remove()">
+                        CONFIRM SELECTION
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // 28.2 - Select Voice Logic
+        function selectVoice(index, el) {
+            // Highlight UI
+            el.parentElement.querySelectorAll('div').forEach(d => d.classList.remove('bg-cyan/20'));
+            el.classList.add('bg-cyan/20');
+            
+            // Save Preference
+            const voices = window.speechSynthesis.getVoices();
+            const selected = voices[index];
+            
+            userState.settings.voiceName = selected.name;
+            
+            // Persist to DB
+            if (userState.uid) {
+                db.ref(`users/${userState.uid}/settings/voiceName`).set(selected.name);
+            }
+            
+            // Test Speak
+            const ut = new SpeechSynthesisUtterance("Voice module updated.");
+            ut.voice = selected;
+            window.speechSynthesis.speak(ut);
+        }
+
+        /* 
+           ==========================================================================
+           29.0 - VISUALIZER ANIMATION LOOP (AUDIO REACTIVITY SIMULATION)
+           ==========================================================================
+        */
+
+        function visualizerLoop() {
+            if (userState.runtime.isListening) {
+                // Simulate randomness for talking effect since we can't access raw audio stream easily without AudioContext constraints
+                const scale = 1 + Math.random() * 0.2;
+                const glow = 10 + Math.random() * 20;
+                
+                const core = document.querySelector('.core-center');
+                const ringOuter = document.querySelector('.ring-outer');
+
+                if(core) {
+                    core.style.transform = `scale(${scale})`;
+                    core.style.boxShadow = `0 0 ${glow}px var(--color-core-cyan)`;
+                }
+                if(ringOuter) {
+                    ringOuter.style.borderWidth = `${1 + Math.random() * 3}px`;
+                }
+            } else {
+                // Reset to idle
+                const core = document.querySelector('.core-center');
+                if(core && core.style.transform !== '') {
+                    core.style.transform = '';
+                    core.style.boxShadow = '';
+                }
+            }
+            requestAnimationFrame(visualizerLoop);
+        }
+        
+        // Start Loop
+        visualizerLoop();
+
+        /* 
+           ==========================================================================
+           30.0 - SYSTEM CREDITS & FINAL INIT
+           ==========================================================================
+        */
+
+        console.log("%c JARVIS AI USER INTERFACE ", "background: #000; color: #00f3ff; font-size: 20px; font-weight: bold; border: 1px solid #00f3ff; padding: 10px;");
+        console.log("%c Concept & Code by Akshay ", "color: #ffd700; font-size: 14px;");
+
+        window.addEventListener('load', () => {
+            
+            // 1. Initial Checks
+            if (!navigator.onLine) {
+                showToast("OFFLINE MODE - LIMITED FUNCTIONALITY", "warning");
+            }
+
+            // 2. Preload Voices
+            window.speechSynthesis.getVoices(); 
+
+            // 3. Remove Loading Overlay if Auth fails fast (fail-safe)
+            setTimeout(() => {
+                if (!userState.isAuthenticated && !dom.authView.classList.contains('hidden')) {
+                    dom.bootScreen.style.display = 'none';
+                }
+            }, 3000);
+
+            // 4. Attach Event Listeners to Nav
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Haptic Feedback
+                    if (navigator.vibrate) navigator.vibrate(10);
+                });
+            });
+
+        });
+/* ==========================================================
+   ROYAL ENTRY ANIMATION SYSTEM - JS START
+   ========================================================== */
+const royalSystem = {
+    overlay: document.getElementById('royal-loader-overlay'),
+    status: document.getElementById('royal-status-text'),
+    show: function(text) {
+        this.status.innerText = text || "ESTABLISHING SECURE LINK";
+        this.overlay.classList.remove('hidden');
+    },
+    hide: function() {
+        this.overlay.classList.add('hidden');
+        this.staggerEntry();
+    },
+    staggerEntry: function() {
+        const elements = document.querySelectorAll('.card, .feature-item, .user-stat, .nav-item');
+        elements.forEach((el, i) => {
+            setTimeout(() => {
+                el.classList.add('animate-entry');
+                el.style.opacity = "1";
+            }, i * 100);
+        });
+    }
+};
+
+document.addEventListener('click', function(e) {
+    if (e.target.innerText?.toLowerCase().includes('login') || 
+        e.target.id?.includes('login') || e.target.id?.includes('submit')) {
+        
+        const pulse = document.createElement('div');
+        pulse.className = 'energy-pulse';
+        pulse.style.left = e.pageX + 'px';
+        pulse.style.top = e.pageY + 'px';
+        document.body.appendChild(pulse);
+        setTimeout(() => pulse.remove(), 800);
+
+        royalSystem.show("AUTHORIZING...");
+    }
+});
+
+window.showRoyalLoader = () => royalSystem.show();
+window.hideRoyalLoader = () => royalSystem.hide();
+/* ==========================================================
+   ROYAL ENTRY ANIMATION SYSTEM - JS END
+   ========================================================== */
+
+/* ==========================================================
+   FINAL EMERGENCY UNLOCK
+   ========================================================== */
+function unlockJarvisInterface() {
+    const loader = document.getElementById('royal-loader-overlay');
+    const boot = document.getElementById('boot-screen');
+    
+    if(loader) {
+        loader.style.display = 'none';
+        loader.style.pointerEvents = 'none';
+    }
+    if(boot) {
+        boot.style.display = 'none';
+    }
+    console.log("Interface Unlocked!");
+}
+
+// Ise auto-run karein login ke 3 second baad
+setTimeout(unlockJarvisInterface, 3000);
+    </script>
+
+    <!-- 
+       ==========================================================================
+       31.0 - FIREBASE SECURITY RULES (MANDATORY FOR DEPLOYMENT)
+       ==========================================================================
+       
+       PASTE THIS INTO FIREBASE CONSOLE -> REALTIME DATABASE -> RULES
+       
+       {
+          "rules": {
+            ".read": "auth != null",
+            ".write": "auth != null",
+            "users": {
+              "$uid": {
+                ".read": "auth.uid === $uid || root.child('admins').child(auth.uid).exists()",
+                ".write": "auth.uid === $uid || root.child('admins').child(auth.uid).exists()"
+              }
+            },
+            "chats": {
+              "$uid": {
+                ".read": "auth.uid === $uid",
+                ".write": "auth.uid === $uid"
+              }
+            }
+          }
+       }
+    -->
+<!-- ROYAL ENTRY ANIMATION OVERLAY START -->
+<div id="royal-loader-overlay" class="hidden">
+    <div class="royal-orb-container">
+        <div class="royal-arc"></div>
+        <div class="royal-arc-2"></div>
+        <div class="royal-core-orb"></div>
+    </div>
+    <div id="royal-status-text" style="color: white; margin-top: 25px; font-family: sans-serif; letter-spacing: 3px; font-size: 12px; text-shadow: 0 0 10px var(--royal-cyan); text-align: center;">AUTHORIZING ACCESS</div>
+</div>
+<!-- ROYAL ENTRY ANIMATION OVERLAY END -->
+</body>
+</html>
