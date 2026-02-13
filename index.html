@@ -1867,33 +1867,57 @@ async function processCommand(rawText) {
 
 // 2. AI ENGINE (DeepSeek R1 via OpenRouter)
 async function askJarvisAI(query) {
+    // 1. Database se Config uthao
     const snap = await db.ref('system_config/ai_core').once('value');
-    const config = snap.val();
-    
-    if (!config || !config.api_key) {
-        return speakResponse("Sir, the neural core is not configured. Please add the API key in the Admin Panel.");
+    const cfg = snap.val();
+
+    if (!cfg || !cfg.api_key) {
+        return speakResponse("Sir, API key is missing. Please check Admin Panel.");
     }
 
     try {
+        // 2. OpenRouter API Call (With Fixed Headers)
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${config.api_key}`,
+                "Authorization": `Bearer ${cfg.api_key}`,
+                "HTTP-Referer": "https://y771-cyber.github.io", // OpenRouter requires this
+                "X-Title": "Jarvis AI Royal",
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "model": "tngtech/deepseek-tng-r1t2-chimera:free",
+                "model": cfg.model || "tngtech/deepseek-tng-r1t2-chimera:free",
                 "messages": [
-                    {"role": "system", "content": "You are JARVIS, a royal AI assistant created by Akshay. Be smart, call him Sir."},
-                    {"role": "user", "content": query}
-                ]
+                    {
+                        "role": "system", 
+                        "content": "You are JARVIS, a royal and intelligent AI assistant created by Akshay. Always call him Sir. Be brief, smart and futuristic."
+                    },
+                    {
+                        "role": "user", 
+                        "content": query
+                    }
+                ],
+                "top_p": 1,
+                "temperature": 0.7
             })
         });
+
         const data = await response.json();
-        const aiResponse = data.choices[0].message.content;
-        speakResponse(aiResponse);
+
+        // 3. Response Check
+        if (data.choices && data.choices[0]) {
+            const aiText = data.choices[0].message.content;
+            speakResponse(aiText);
+        } else if (data.error) {
+            console.error("OpenRouter Error:", data.error);
+            speakResponse("Sir, the neural provider returned an error. It says: " + data.error.message);
+        } else {
+            speakResponse("Sir, the neural pathways are congested. Please retry.");
+        }
+
     } catch (e) {
-        speakResponse("Neural network unreachable, Sir.");
+        console.error("Fetch Failure:", e);
+        speakResponse("Sir, I cannot establish a secure uplink to the neural network. Check your internet.");
     }
 }
 
