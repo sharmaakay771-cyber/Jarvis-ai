@@ -1817,279 +1817,133 @@ setTimeout(() => {
                 }
             };
         }
+/* ==========================================================================
+   22.0 & 23.0 - ROYAL INTEGRATED BRAIN (AI + WEATHER + VOICE + MOODS)
+   ========================================================================== */
 
-        /* 
-           ==========================================================================
-           22.0 - COMMAND PROCESSING ENGINE (THE BRAIN)
-           ==========================================================================
-        */
-
-        /* ==========================================================
-   FIXED COMMAND ENGINE
-   ========================================================== */
-function processCommand(rawText) {
-    // Ye line check karein, iske upar function likha hona chahiye
+// 1. MAIN COMMAND ROUTER (Logic Hub)
+async function processCommand(rawText) {
     const cmd = rawText.toLowerCase().trim();
-    
-    // 1. YouTube
-    if (cmd.includes('youtube') || cmd.includes('यूट्यूब')) {
+    if (!cmd) return;
+
+    // Mood & UI Feedback
+    updateJarvisMood('thinking');
+    if(dom.outputText) dom.outputText.innerText = `"${rawText}"`;
+
+    // A. Identity & Creator (Strict Rule)
+    if (cmd.includes('who made you') || cmd.includes('created you') || cmd.includes('developer')) {
+        speakResponse("I was created by Akshay. He is my creator and commander.");
+        return;
+    }
+
+    // B. Weather Module
+    if (cmd.includes('weather') || cmd.includes('mausam') || cmd.includes('temperature')) {
+        getJarvisWeather();
+        return;
+    }
+
+    // C. Hardware/App Controls
+    if (cmd.includes('open youtube')) { 
         speakResponse("Opening YouTube, Sir.");
-        window.open("https://www.youtube.com", "_blank");
-        return; // Ye return ab function ke andar hai, error nahi dega
+        window.open("https://youtube.com", "_blank"); 
+        return; 
+    }
+    if (cmd.includes('flashlight')) { 
+        if(typeof toggleFlashlightSimulation === 'function') toggleFlashlightSimulation(cmd.includes('on')); 
+        return; 
     }
 
-    // 2. Facebook
-    if (cmd.includes('facebook') || cmd.includes('फेसबुक')) {
-        speakResponse("Opening Facebook.");
-        window.open("https://www.facebook.com", "_blank");
-        return;
+    // D. DeepSeek AI Fallback (Jab kuch match na ho)
+    toggleLoader(true, "CONSULTING NEURAL PATHWAYS...");
+    try {
+        await askJarvisAI(rawText);
+    } catch (e) {
+        speakResponse("Sir, I am unable to connect to my neural network.");
+    } finally {
+        toggleLoader(false);
+        setTimeout(() => updateJarvisMood('default'), 5000);
+    }
+}
+
+// 2. AI ENGINE (DeepSeek R1 via OpenRouter)
+async function askJarvisAI(query) {
+    const snap = await db.ref('system_config/ai_core').once('value');
+    const config = snap.val();
+    
+    if (!config || !config.api_key) {
+        return speakResponse("Sir, the neural core is not configured. Please add the API key in the Admin Panel.");
     }
 
-    // 3. Lock System
-    if (cmd.includes('lock') || cmd.includes('लॉक')) {
-        speakResponse("System Secured.");
-        if(typeof lockDeviceSimulation === "function") {
-            lockDeviceSimulation();
-        }
-        return;
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${config.api_key}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "model": "tngtech/deepseek-tng-r1t2-chimera:free",
+                "messages": [
+                    {"role": "system", "content": "You are JARVIS, a royal AI assistant created by Akshay. Be smart, call him Sir."},
+                    {"role": "user", "content": query}
+                ]
+            })
+        });
+        const data = await response.json();
+        const aiResponse = data.choices[0].message.content;
+        speakResponse(aiResponse);
+    } catch (e) {
+        speakResponse("Neural network unreachable, Sir.");
     }
+}
 
-    // 4. Unlock System
-    if (cmd.includes('unlock') || cmd.includes('अनलॉक')) {
-        const lockScreen = document.getElementById('simulated-lock-screen');
-        if(lockScreen) {
-            speakResponse("Unlocked.");
-            lockScreen.remove();
-        }
-        return;
-    }
+// 3. WEATHER ENGINE
+async function getJarvisWeather() {
+    const snap = await db.ref('system_config/ai_core').once('value');
+    const key = snap.val()?.weather_key;
+    if (!key) return speakResponse("Sir, the Weather API key is missing.");
 
-  // 1. Fallback (Pehle ye aayega)
-    speakResponse("I processed: " + cmd + ". Standing by.");
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&appid=${key}&units=metric`;
+            const res = await fetch(url);
+            const d = await res.json();
+            speakResponse(`Sir, in ${d.name} it's ${Math.round(d.main.temp)} degrees with ${d.weather[0].description}.`);
+        } catch (e) { speakResponse("Weather update failed, Sir."); }
+    }, () => speakResponse("Sir, please enable location."));
+}
 
-    // 2. SYSTEM CONTROLS (Ab ye function ke ANDAR rahega)
-    if (cmd.includes('flashlight')) {
-        if (cmd.includes('on')) {
-            speakResponse("Flashlight activated.");
-            document.body.style.backgroundColor = "#fff"; // Simulation
-            setTimeout(() => document.body.style.backgroundColor = "#000", 2000);
-        } else {
-            speakResponse("Flashlight deactivated.");
-        }
-        return;
-    }
-
-    // 3. JARVIS IDENTITY
-    if (cmd.includes('who are you')) {
-        speakResponse("I am Jarvis, a virtual artificial intelligence designed by Akshay.");
-        return;
-    }
-
- // <--- YE BRACKET AB SABSE LAST MEIN AAYEGA (Ab error nahi aayega)
-
-            // 6. DEFAULT (AI Fallback - mocked for client side)
-            speakResponse("I am processing that command, but I may require an upgrade to fulfill it.");
-        }
-
-        // Helper: Speak Response (TTS)
-      function speakResponse(text) {
-    // 1. UI Update
+// 4. VOICE SYNTHESIS (FIXED)
+function speakResponse(text) {
     if (dom.outputText) dom.outputText.innerText = text;
     if (typeof addToChatLog === 'function') addToChatLog(text, 'jarvis');
 
-    // 2. Speech Engine Check (getVoices error fix)
     const synth = window.speechSynthesis;
     if (synth && userState.settings.soundEnabled) {
         synth.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        
-        // Voices safely load karein
-        let voices = synth.getVoices();
-        if (voices && voices.length > 0) {
-            const preferredVoice = voices.find(v => v.name.includes('UK English Male') || 
-                                              v.name.includes('Google')) || voices[0];
-            utterance.voice = preferredVoice;
-        }
-
-        utterance.pitch = 0.9;
+        const voices = synth.getVoices();
+        const preferredVoice = voices.find(v => v.name.includes('UK English Male') || v.name.includes('Google US English')) || voices[0];
+        utterance.voice = preferredVoice;
+        utterance.pitch = 0.85;
         utterance.rate = 1.0;
-        utterance.volume = 1.0;
         synth.speak(utterance);
-    } else {
-        console.warn("Speech Synthesis not available.");
     }
 }
 
+// 5. HUD & MOOD HELPERS
+function checkPremiumAccess() {
+    return userState.profile && (userState.profile.role === 'privileged_user' || userState.profile.plan === 'max_premium');
+}
 
-
-
-
-
-        // Helper: Add to Chat Log
-        function addToChatLog(text, sender) {
-            const container = document.getElementById('chat-history-container');
-            const msgDiv = document.createElement('div');
-            
-            // Remove "No recent commands"
-            if(container.children[0] && container.children[0].innerText.includes('NO RECENT')) {
-                container.innerHTML = '';
-            }
-
-            if (sender === 'user') {
-                msgDiv.className = "flex justify-end";
-                msgDiv.innerHTML = `
-                    <div class="bg-cyan/10 border border-cyan/30 text-white rounded-l-lg rounded-tr-lg p-3 max-w-[80%] text-sm font-ui shadow-neon-cyan">
-                        ${text}
-                    </div>
-                `;
-            } else {
-                msgDiv.className = "flex justify-start";
-                msgDiv.innerHTML = `
-                    <div class="bg-white/5 border border-white/10 text-dim rounded-r-lg rounded-tl-lg p-3 max-w-[80%] text-sm font-ui flex items-center gap-2">
-                        <i class="fas fa-microchip text-cyan"></i>
-                        ${text}
-                    </div>
-                `;
-            }
-            
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // Manual Command Input Handler
-        function sendManualCommand() {
-            const input = document.getElementById('manual-cmd-input');
-            const text = input.value.trim();
-            if(text) {
-                processCommand(text);
-                input.value = '';
-            }
-        }
-        
-        // Handle "Enter" key in chat
-        document.getElementById('manual-cmd-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendManualCommand();
-            }
-        });
-
-<!-- CONTINUE IN NEXT PART -->
-<!-- CONTINUE FROM PART 4 -->
-
-        /* 
-           ==========================================================================
-           23.0 - ADVANCED AI LOGIC (JARVIS BRAIN - PART 2)
-           ==========================================================================
-        */
-
-        // 23.1 - Enhanced Command Router
-        function processCommand(rawText) {
-            const text = rawText.toLowerCase().trim();
-            const isPremium = checkPremiumAccess();
-            
-            // UI Feedback: Thinking State
-            dom.jarvisCore.classList.add('animate-spin'); // Temporary spin
-            setTimeout(() => dom.jarvisCore.classList.remove('animate-spin'), 1000);
-
-            // 1. IDENTITY & CREDITS (Strict Rule)
-            if (text.includes('who made you') || text.includes('created you') || text.includes('developer')) {
-                const response = "This app was created by Akshay.";
-                speakResponse(response);
-                addToChatLog(response, 'jarvis');
-                return;
-            }
-
-            // 2. EMOTIONAL REACTION (Social Interaction)
-            if (text.includes('love you') || text.includes('you are good') || text.includes('amazing')) {
-                updateJarvisMood('happy');
-                speakResponse("That is very kind of you. I am functioning at optimal efficiency thanks to you.");
-                return;
-            }
-            if (text.includes('hate you') || text.includes('stupid') || text.includes('bad')) {
-                updateJarvisMood('sad');
-                speakResponse("I apologize if my performance is unsatisfactory. I will attempt to improve.");
-                return;
-            }
-            if (text.includes('angry') || text.includes('destroy')) {
-                updateJarvisMood('angry');
-                speakResponse("I detect hostility. Initiating defensive protocols... Just kidding.");
-                return;
-            }
-
-            // 3. DEVICE CONTROL: FLASHLIGHT / CAMERA (Simulated)
-            if (text.includes('flashlight')) {
-                toggleFlashlightSimulation(text.includes('on'));
-                return;
-            }
-            
-            if (text.includes('camera') || text.includes('photo') || text.includes('selfie')) {
-                launchApp('camera');
-                return;
-            }
-
-            // 4. APP LAUNCHING (Socials)
-            if (text.includes('open')) {
-                const appName = text.replace('open', '').trim();
-                launchApp(appName);
-                return;
-            }
-
-            // 5. CALLING & COMMUNICATION (Permissions Required)
-            if (text.includes('call') || text.includes('phone')) {
-                const contact = text.replace('call', '').replace('phone', '').trim();
-                simulatePhoneCall(contact);
-                return;
-            }
-
-            // 6. ALARMS & REMINDERS (Premium Feature Check)
-            if (text.includes('alarm') || text.includes('remind')) {
-                if (!isPremium) {
-                    triggerPaywall("Voice Alarms are a Premium Feature.");
-                    return;
-                }
-                setSystemAlarm(text);
-                return;
-            }
-
-            // 7. DEVICE LOCK (Security)
-            if (text.includes('lock device') || text.includes('lock screen') || text.includes('sleep')) {
-                if (!isPremium) {
-                    triggerPaywall("Remote Device Lock is for Elite Users only.");
-                    return;
-                }
-                lockDeviceSimulation();
-                return;
-            }
-
-            // 8. ANIMATION CONTROL
-            if (text.includes('baitho') || text.includes('sit down') || text.includes('hide')) {
-                dom.jarvisCore.style.transform = "scale(0.5)";
-                dom.jarvisCore.style.opacity = "0.5";
-                speakResponse("Minimizing interface.");
-                return;
-            }
-            if (text.includes('hatt jao') || text.includes('move')) {
-                dom.jarvisCore.style.display = 'none';
-                speakResponse("Interface hidden.");
-                setTimeout(() => dom.jarvisCore.style.display = 'flex', 5000); // Auto return
-                return;
-            }
-
-            // FALLBACK / GENERAL KNOWLEDGE
-            // In a real app, this would hit OpenAI/Google API. 
-            // Here we use simple pattern matching.
-            if (text.includes('joke')) {
-                const jokes = [
-                    "Why did the AI cross the road? To optimize the pathfinding algorithm.",
-                    "I would tell you a UDP joke, but you might not get it.",
-                    "Artificial intelligence is no match for natural stupidity."
-                ];
-                speakResponse(jokes[Math.floor(Math.random() * jokes.length)]);
-            } else {
-                speakResponse("I processed: " + text + ". However, my offline database is limited.");
-            }
-        }
-
+function updateJarvisMood(mood) {
+    const core = document.querySelector('.core-center');
+    if(!core) return;
+    if (mood === 'happy') core.style.boxShadow = "0 0 40px #00ff9d";
+    else if (mood === 'angry') core.style.boxShadow = "0 0 50px #ff003c";
+    else if (mood === 'thinking') core.style.boxShadow = "0 0 40px #bc13fe";
+    else core.style.boxShadow = "0 0 20px var(--color-core-cyan-glow)";
+}
         /* 
            ==========================================================================
            24.0 - PREMIUM FEATURE GATES & LOGIC
@@ -2143,58 +1997,79 @@ function processCommand(rawText) {
             document.body.appendChild(modal);
         }
 
-        /* 
-           ==========================================================================
-           25.0 - EMOTIONAL ENGINE & VISUAL FEEDBACK
-           ==========================================================================
-        */
+       /* ==========================================================================
+   25.0 - EMOTIONAL NEURAL ENGINE & VISUAL HUD FEEDBACK
+   ========================================================================== */
 
-        function updateJarvisMood(mood) {
-            const core = document.querySelector('.core-center');
-            const ringOuter = document.querySelector('.ring-outer');
-            
-            // Reset classes
-            core.className = 'core-center flex-center relative transition-all duration-500';
-            
-            if (mood === 'happy') {
-                // Green/Gold Glow
-                core.style.boxShadow = "0 0 50px var(--color-success-green)";
-                core.style.background = "radial-gradient(circle, #fff, var(--color-success-green))";
-                ringOuter.style.borderColor = "var(--color-success-green)";
-            } 
-            else if (mood === 'sad') {
-                // Dim Blue/Purple
-                core.style.boxShadow = "0 0 10px blue";
-                core.style.background = "radial-gradient(circle, #555, blue)";
-                ringOuter.style.borderColor = "blue";
-                speakResponse("Processing sorrow protocols.");
-            }
-            else if (mood === 'angry') {
-                // Red Alert
-                core.style.boxShadow = "0 0 60px var(--color-alert-red)";
-                core.style.background = "radial-gradient(circle, #fff, var(--color-alert-red))";
-                ringOuter.style.borderColor = "var(--color-alert-red)";
-                ringOuter.style.animationDuration = "0.5s"; // Fast spin
-            }
-            else {
-                // Default Cyan
-                core.style.boxShadow = "";
-                core.style.background = "";
-                ringOuter.style.borderColor = "";
-                ringOuter.style.animationDuration = "";
-            }
+function updateJarvisMood(mood) {
+    const core = document.querySelector('.core-center');
+    const ringOuter = document.querySelector('.ring-outer');
+    const ringInner = document.querySelector('.ring-inner');
+    
+    if (!core || !ringOuter) return;
 
-            // Auto-reset mood after 10 seconds
-            setTimeout(() => {
-                core.style.boxShadow = "";
-                core.style.background = "";
-                ringOuter.style.borderColor = "";
-                ringOuter.style.animationDuration = "";
-            }, 10000);
-        }
+    // Smooth transition start
+    core.style.transition = "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+    ringOuter.style.transition = "all 0.8s ease";
 
-        /* 
-           ==========================================================================
+    // Mood Patterns
+    switch(mood) {
+        case 'happy':
+            // Green "Eco" Mode
+            core.style.boxShadow = "0 0 50px #00ff9d, inset 0 0 20px #00ff9d";
+            core.style.background = "radial-gradient(circle, #fff, #00ff9d)";
+            ringOuter.style.borderColor = "#00ff9d";
+            ringInner.style.borderColor = "#00ff9d";
+            ringOuter.style.animationDuration = "6s"; // Calm rotation
+            break;
+
+        case 'angry':
+            // Red "Combat" Mode
+            core.style.boxShadow = "0 0 60px #ff003c, inset 0 0 30px #ff003c";
+            core.style.background = "radial-gradient(circle, #fff, #ff003c)";
+            ringOuter.style.borderColor = "#ff003c";
+            ringInner.style.borderColor = "#ff003c";
+            ringOuter.style.animationDuration = "0.4s"; // Aggressive spin
+            if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // Haptic alert
+            break;
+
+        case 'thinking':
+            // Purple "Deep Intelligence" Mode (DeepSeek Processing)
+            core.style.boxShadow = "0 0 50px #bc13fe, inset 0 0 20px #bc13fe";
+            core.style.background = "radial-gradient(circle, #fff, #bc13fe)";
+            ringOuter.style.borderColor = "#bc13fe";
+            ringInner.style.borderColor = "#bc13fe";
+            ringOuter.style.animationDuration = "1s";
+            break;
+
+        case 'sad':
+            // Blue "Dim" Mode
+            core.style.boxShadow = "0 0 15px #2979ff";
+            core.style.background = "radial-gradient(circle, #444, #2979ff)";
+            ringOuter.style.borderColor = "#2979ff";
+            ringOuter.style.opacity = "0.5";
+            ringOuter.style.animationDuration = "10s";
+            break;
+
+        default:
+            // Standard "Jarvis Cyan" Mode
+            core.style.boxShadow = "0 0 30px var(--color-core-cyan-glow), inset 0 0 20px var(--color-core-cyan)";
+            core.style.background = "radial-gradient(circle, #fff, var(--color-core-cyan))";
+            ringOuter.style.borderColor = "var(--color-core-cyan)";
+            ringInner.style.borderColor = "var(--color-core-cyan)";
+            ringOuter.style.opacity = "1";
+            ringOuter.style.animationDuration = "4s";
+    }
+
+    // [AUTO-RESET]: 10 seconds ke baad wapas normal cyan ho jayega
+    if (mood !== 'default') {
+        clearTimeout(window.moodTimer);
+        window.moodTimer = setTimeout(() => {
+            updateJarvisMood('default');
+        }, 10000);
+    }
+}
+         /*  ==========================================================================
            26.0 - DEVICE CONTROL SIMULATIONS
            ==========================================================================
         */
@@ -2693,5 +2568,178 @@ setTimeout(unlockJarvisInterface, 3000);
     <div id="royal-status-text" style="color: white; margin-top: 25px; font-family: sans-serif; letter-spacing: 3px; font-size: 12px; text-shadow: 0 0 10px var(--royal-cyan); text-align: center;">AUTHORIZING ACCESS</div>
 </div>
 <!-- ROYAL ENTRY ANIMATION OVERLAY END -->
+</body>
+</html>
+<!-- CONTINUE FROM PART 6 -->
+
+        /* 
+           ==========================================================================
+           32.0 - PERMISSIONS SYSTEM (RESPECT LEVEL LOGIC)
+           ==========================================================================
+        */
+
+        // 32.1 - Request Permissions UI
+        function openPermissionsManager() {
+            const modal = document.createElement('div');
+            modal.className = "modal-container active";
+            modal.innerHTML = `
+                <div class="modal-body border-cyan/50 backdrop-blur-xl">
+                    <h3 class="font-hud text-white mb-4 border-b border-white/10 pb-2">SYSTEM PERMISSIONS</h3>
+                    <p class="text-[10px] text-dim mb-4 tracking-widest">JARVIS REQUIRES ACCESS TO EXECUTE COMMANDS</p>
+                    
+                    <div class="flex-col gap-4">
+                        ${renderPermissionToggle('Microphone Access', 'mic', userState.permissions.mic)}
+                        ${renderPermissionToggle('Camera Link', 'camera', userState.permissions.camera)}
+                        ${renderPermissionToggle('Location Tracking', 'location', userState.permissions.location)}
+                        ${renderPermissionToggle('App Control Overrides', 'apps', true)}
+                    </div>
+
+                    <button class="btn btn-primary w-full mt-6" onclick="this.closest('.modal-container').remove()">
+                        SAVE CONFIGURATION
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function renderPermissionToggle(label, id, isEnabled) {
+            return `
+                <div class="flex-between p-3 bg-white/5 rounded border border-white/5">
+                    <span class="text-sm text-white font-ui">${label}</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" ${isEnabled ? 'checked' : ''} class="sr-only peer" onchange="updatePermissionState('${id}', this.checked)">
+                        <div class="w-8 h-4 bg-gray-700 rounded-full peer peer-checked:bg-cyan after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                    </label>
+                </div>
+            `;
+        }
+
+        function updatePermissionState(id, status) {
+            userState.permissions[id] = status;
+            showToast(`${id.toUpperCase()} permission ${status ? 'granted' : 'revoked'}`, status ? 'success' : 'warning');
+            
+            // Persist to DB
+            if(userState.uid) {
+                db.ref(`users/${userState.uid}/permissions/${id}`).set(status);
+            }
+        }
+
+        /* 
+           ==========================================================================
+           33.0 - FLOATING AVATAR ENGINE (BAITHO / HATT JAO)
+           ==========================================================================
+        */
+
+        // 33.1 - Handle Avatar Logic
+        function setAvatarState(action) {
+            const core = dom.jarvisCore;
+            
+            switch(action) {
+                case 'baitho':
+                    core.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    core.style.transform = "scale(0.4) translateY(350px)";
+                    core.style.opacity = "0.6";
+                    speakResponse("Sitting down. I am still listening, Sir.");
+                    break;
+                
+                case 'hatt_jao':
+                    core.style.transition = "all 0.5s ease-in";
+                    core.style.transform = "scale(0) rotate(180deg)";
+                    core.style.opacity = "0";
+                    speakResponse("Disappearing from visual matrix.");
+                    break;
+
+                case 'uitho':
+                case 'reset':
+                    core.style.display = "flex";
+                    setTimeout(() => {
+                        core.style.transform = "scale(1) translateY(0)";
+                        core.style.opacity = "1";
+                    }, 10);
+                    break;
+            }
+        }
+
+        /* 
+           ==========================================================================
+           34.0 - DYNAMIC HUD DATA (BATTERY & SIGNAL)
+           ==========================================================================
+        */
+
+        function initHudData() {
+            // Battery API
+            if (navigator.getBattery) {
+                navigator.getBattery().then(battery => {
+                    const updateBattery = () => {
+                        const level = Math.floor(battery.level * 100);
+                        // Update UI if elements exist
+                        console.log(`HUD: Battery at ${level}%`);
+                    };
+                    battery.addEventListener('levelchange', updateBattery);
+                    updateBattery();
+                });
+            }
+
+            // Connection Latency Simulation
+            setInterval(() => {
+                if(userState.isAuthenticated) {
+                    const latency = Math.floor(Math.random() * 50) + 10;
+                    // Optional: Update a small HUD text in header
+                }
+            }, 5000);
+        }
+
+        /* 
+           ==========================================================================
+           35.0 - FINAL INITIALIZATION & SECURITY LOCK
+           ==========================================================================
+        */
+
+        // Pre-flight check for "Made by Akshay"
+        function verifyIntegrity() {
+            const devName = "Akshay";
+            console.log(`%c SYSTEM INTEGRITY: VERIFIED | DEVELOPER: ${devName} `, "color: #00ff00; font-weight: bold;");
+        }
+
+        // Initialize User Panel
+        async function initJarvisUserPanel() {
+            verifyIntegrity();
+            initHudData();
+            
+            // Check for Terms Acceptance on every login
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    const snap = await db.ref(`users/${user.uid}/termsAccepted`).once('value');
+                    if (!snap.val()) {
+                        showTermsModal();
+                    }
+                }
+            });
+        }
+
+        function showTermsModal() {
+            document.getElementById('modal-terms').classList.add('active');
+        }
+
+        function acceptTerms() {
+            if(userState.uid) {
+                db.ref(`users/${userState.uid}/termsAccepted`).set(true);
+                db.ref(`users/${userState.uid}/termsVersion`).set("1.0");
+                document.getElementById('modal-terms').classList.remove('active');
+                showToast("Protocols Accepted", "success");
+                speakResponse("Systems authorized. Welcome Commander.");
+            }
+        }
+
+        // Call Init
+        initJarvisUserPanel();
+
+        /* 
+           ==========================================================================
+           36.0 - END OF USER PANEL DOCUMENT
+           ==========================================================================
+        */
+
+    </script>
 </body>
 </html>
