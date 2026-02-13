@@ -1,4 +1,3 @@
-
 <!-- 
     PROJECT: JARVIS AI ASSISTANT - USER PANEL (CLIENT)
     PLATFORM: CROSS-PLATFORM (MOBILE + PC WEB APP)
@@ -1867,32 +1866,39 @@ async function processCommand(rawText) {
 }
 
 // 2. AI ENGINE (DeepSeek R1 via OpenRouter)
+/* ==========================================================================
+   JARVIS NEURAL CORE - UNIVERSAL REMOTE VERSION (NO MORE GITHUB EDITS)
+   ========================================================================== */
 async function askJarvisAI(query) {
     try {
-        // 1. Firebase se Configuration (Key aur Model ID) lena
+        // 1. Har cheez Database se uthao (Instant Sync)
         const snap = await firebase.database().ref('system_config/ai_core').once('value');
         const cfg = snap.val();
 
         if (!cfg || !cfg.api_key) {
-            return speakResponse("Sir, API key is missing. Please check Admin Panel.");
+            return speakResponse("Sir, neural pathways are not linked. Please update Admin Panel.");
         }
 
-        // 2. OpenRouter API Call
+        // 2. OpenRouter API Call (Fully Dynamic)
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${cfg.api_key}`,
+               "Authorization": `Bearer ${cfg.api_key}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin, 
-                "X-Title": "Jarvis Royal AI"
+                "HTTP-Referer": window.location.origin, // GitHub URL apne aap pakad lega
+                "X-Title": "Jarvis AI"
             },
             body: JSON.stringify({
-                // AB YE LINE DATABASE SE MODEL UTHAYEGI (Hardcoded nahi hai)
-                "model": cfg.model || "tngtech/deepseek-r1t2-chimera:free", 
+                "model": cfg.model || "google/gemini-2.0-flash-exp:free", // Admin se aayega
                 "messages": [
-                    {"role": "system", "content": "You are JARVIS, a royal AI assistant created by Akshay. Be brief and smart."},
+                    {
+                        "role": "system", 
+                        "content": cfg.system_prompt || "You are JARVIS, a royal AI by Akshay. Call him Sir."
+                    },
                     {"role": "user", "content": query}
-                ]
+                ],
+                "top_p": 1,
+                "temperature": 0.7
             })
         });
 
@@ -1900,15 +1906,15 @@ async function askJarvisAI(query) {
 
         if (data.choices && data.choices[0]) {
             speakResponse(data.choices[0].message.content);
-        } else {
-            // Agar Model ID galat hui toh ye alert batayega
-            alert("MODEL ERROR: " + (data.error ? data.error.message : "Check ID in Admin Panel"));
-            speakResponse("Sir, I detected a mismatch in my neural model ID.");
+        } else if (data.error) {
+            // Agar Admin ne model ID galat dali toh Jarvis khud batayega
+            alert("MODEL ERROR: " + data.error.message);
+            speakResponse("Sir, the selected neural model is invalid. Please recalibrate in the Admin Terminal.");
         }
 
     } catch (e) {
-        console.error("Link Error:", e);
-        speakResponse("Sir, secure uplink failed. Check your internet.");
+        console.error("Link Failure:", e);
+        speakResponse("Sir, I cannot establish a secure uplink. Check your connection.");
     }
 }
 
