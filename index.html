@@ -1869,64 +1869,68 @@ async function processCommand(rawText) {
 /* ==========================================================================
    JARVIS NEURAL CORE - UNIVERSAL REMOTE VERSION (NO MORE GITHUB EDITS)
    ========================================================================== */
+/* ==========================================================================
+   JARVIS NEURAL ROUTING ENGINE (MULTI-MODEL + AUTO FALLBACK)
+   ========================================================================== */
+
 async function askJarvisAI(query) {
-    try {
-        const snap = await db.ref('system_config/ai_core').once('value');
-        const cfg = snap.val() || {};
+    // 1. Database se Config lena
+    const snap = await firebase.database().ref('system_config/ai_core').once('value');
+    const cfg = snap.val();
 
-        // 1. API Key Check
-        if (!cfg.api_key) {
-            return speakResponse("Sir, neural pathways are not linked. Update API Key in Admin Panel.");
-        }
-
-        // 2. Model ID Check (Agar Admin box khali hai toh Gemini use karega)
-        const selectedModel = cfg.model && cfg.model.length > 5 ? cfg.model : "google/gemini-2.0-flash-exp:free";
-
-        console.log("Using Model:", selectedModel); // Debugging ke liye
-
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${cfg.api_key}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin,
-                "X-Title": "Jarvis AI Royal"
-            },
-            body: JSON.stringify({
-                "model": selectedModel,
-                "messages": [
-                    {
-                        "role": "system", 
-                        "content": cfg.system_prompt || "You are JARVIS, a royal AI by Akshay. Call him Sir."
-                    },
-                    {"role": "user", "content": query}
-                ]
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.choices && data.choices[0]) {
-            speakResponse(data.choices[0].message.content);
-        } else {
-            // AGAR AB BHI ERROR AAYE TOH ASLI WAJAH BATAYEGA
-            console.error("OpenRouter Error Data:", data);
-            const errorMsg = data.error ? data.error.message : "Neural Path Congested";
-            
-            // Auto-retry with Gemini if first one fails
-            if(selectedModel !== "google/gemini-2.0-flash-exp:free") {
-                console.log("Retrying with Gemini...");
-                db.ref('system_config/ai_core/model').set("google/gemini-2.0-flash-exp:free");
-                speakResponse("Sir, the previous model failed. Re-routing through Gemini Core.");
-            } else {
-                speakResponse("Sir, the neural provider says: " + errorMsg);
-            }
-        }
-
-    } catch (e) {
-        console.error("Fetch Error:", e);
-        speakResponse("Sir, secure uplink failed. Please check your internet.");
+    if (!cfg || !cfg.api_key) {
+        return speakResponse("Sir, the neural core is not configured. Update Admin Panel.");
     }
+
+    // 2. Smart Selection Logic
+    let modelsToTry = [];
+    if (query.length < 20 || query.includes("hello")) {
+        modelsToTry = [cfg.model_secondary, cfg.model_primary, cfg.model_backup];
+    } else {
+        modelsToTry = [cfg.model_primary, cfg.model_secondary, cfg.model_backup];
+    }
+
+    // 3. Fallback Loop (Ek fail toh dusra sahi)
+    for (let i = 0; i < modelsToTry.length; i++) {
+        const currentModel = modelsToTry[i];
+        if (!currentModel || currentModel.length < 5) continue;
+
+        console.log(`Neural attempt ${i + 1}: ${currentModel}`);
+
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cfg.api_key}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": window.location.origin,
+                    "X-Title": "Jarvis AI Multi-Core"
+                },
+                body: JSON.stringify({
+                    "model": currentModel,
+                    "messages": [
+                        {
+                            "role": "system", 
+                            "content": cfg.system_prompt || "You are JARVIS, a royal AI by Akshay. Call him Sir."
+                        },
+                        {"role": "user", "content": query}
+                    ]
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.choices && data.choices[0]) {
+                // SUCCESS! Jawab mil gaya
+                return speakResponse(data.choices[0].message.content);
+            }
+        } catch (e) {
+            console.error(`Link ${i + 1} Failed. Trying fallback...`);
+        }
+    }
+
+    // 4. Sab fail hone par message
+    speakResponse("Sir, I am unable to connect to any neural nodes. Please check your internet or OpenRouter credits.");
 }
 
 // 3. WEATHER ENGINE
