@@ -383,29 +383,87 @@
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
         }
+/* ==========================================
+   ADVANCED JARVIS AI CORE ANIMATION
+   ========================================== */
+.core-container {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    margin-top: 15vh; /* Screen ke center mein rakhne ke liye */
+    cursor: pointer;
+    z-index: 10;
+}
 
-        /* 
-           ==========================================================================
-           6.0 - CORE UI COMPONENT STYLES
-           ==========================================================================
-        */
+/* Outer Glow Ring (Slow Spin) */
+.core-ring-1 {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 243, 255, 0.05);
+    border-top: 2px solid rgba(0, 243, 255, 0.8);
+    border-bottom: 2px solid rgba(0, 243, 255, 0.8);
+    animation: spin 10s linear infinite;
+    box-shadow: 0 0 30px rgba(0,243,255,0.15) inset;
+}
 
-        /* 6.1 - Royal Buttons */
-        .btn {
-            position: relative;
-            padding: 12px 24px;
-            font-family: var(--font-ui);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            overflow: hidden;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
+/* Middle Dashed Ring (Reverse Fast Spin) */
+.core-ring-2 {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    border: 2px dashed rgba(0, 243, 255, 0.4);
+    animation: spin-reverse 15s linear infinite;
+}
+
+/* Inner Tech Ring (Mechanical Spin) */
+.core-ring-3 {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    border-left: 4px solid #00f3ff;
+    border-right: 4px solid #00f3ff;
+    opacity: 0.8;
+    animation: spin 3s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+/* Center 3D Glowing Orb */
+.core-orb {
+    position: absolute;
+    width: 42%;
+    height: 42%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, #00f3ff 30%, #004d61 100%);
+    box-shadow: 0 0 40px #00f3ff, 0 0 80px rgba(0,243,255,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: pulse-core 2.5s ease-in-out infinite alternate;
+}
+
+/* Inside Mic Icon */
+.core-mic {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 28px;
+    text-shadow: 0 0 15px white;
+    z-index: 20;
+}
+
+/* Animations */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+@keyframes pulse-core {
+    0% { transform: scale(0.95); box-shadow: 0 0 30px #00f3ff; filter: brightness(0.9); }
+    100% { transform: scale(1.05); box-shadow: 0 0 60px #00f3ff, 0 0 120px rgba(0,243,255,0.7); filter: brightness(1.2); }
+}
 /* ==========================================================
    ROYAL ENTRY ANIMATION SYSTEM - CSS START
    ========================================================== */
@@ -1040,28 +1098,27 @@
         <!-- VIEW 1: HOME (Typo Fixed: view-home) -->
         <div id="view-home" class="view-panel active-view w-full h-full flex-col flex-center absolute top-0 left-0">
             
-            <!-- Output Text with high visibility -->
-            <div class="w-full px-8 text-center" style="margin-top: -40px; margin-bottom: 30px;">
-                <p id="jarvis-output-text" class="text-cyan font-ui text-lg tracking-wide leading-relaxed" style="text-shadow: 0 0 15px rgba(0,243,255,0.6); min-height: 80px;">
-                    "Hello Sir, aap kaise ho? Aaj aapko kya madad chahiye?"
-                </p>
-            </div>
+           <!-- Output Text with high visibility (Default text removed) -->
+<div class="w-full px-8 text-center" style="margin-top: -40px; margin-bottom: 30px;">
+    <p id="jarvis-output-text" class="text-cyan font-ui text-lg tracking-wide leading-relaxed" style="text-shadow: 0 0 15px rgba(0,243,255,0.6); min-height: 80px;">
+        <!-- Yahan ka text hata diya gaya hai taaki screen clean rahe -->
+    </p>
+</div>
+        <!-- ADVANCED JARVIS AI CORE -->
+<!-- Note: 'onclick' me jo function likha hai, wo aapke purane code wala hi rakhna (jaise startListening() ya startDictation()) -->
+<div id="jarvis-core-container" class="core-container" onclick="startListening()">
+    
+    <!-- Rotating Rings -->
+    <div class="core-ring-1"></div>
+    <div class="core-ring-2"></div>
+    <div class="core-ring-3"></div>
+    
+    <!-- Main Glowing Energy Core -->
+    <div class="core-orb">
+        <i class="fas fa-microphone core-mic"></i>
+    </div>
 
-            <!-- JARVIS CORE (Bada aur clickable) -->
-            <div class="jarvis-core-container transform scale-110 cursor-pointer" id="jarvis-activator" onclick="toggleVoiceListening()">
-                <div class="arc-reactor-ring ring-outer"></div>
-                <div class="arc-reactor-ring ring-inner" style="width: 80%; height: 80%;"></div>
-                <div class="core-center flex-center">
-                    <i id="mic-icon" class="fas fa-microphone text-black text-3xl"></i>
-                </div>
-                <!-- Listening Ripple -->
-                <div id="listening-ripple" class="absolute-center rounded-full border-2 border-cyan opacity-0" style="width:0; height:0;"></div>
-            </div>
-
-            <div class="mt-12">
-                <span id="listening-status" class="text-xs text-cyan/70 tracking-[4px] font-hud uppercase animate-pulse">TAP TO COMMAND</span>
-            </div>
-
+</div>
             <!-- Quick Suggestions (Bade aur saaf buttons) -->
             <div class="absolute bottom-6 w-full px-4 flex-row justify-center gap-3 overflow-x-auto no-scrollbar">
                 <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Open YouTube')">
@@ -1769,20 +1826,25 @@ async function loadUserProfile(uid = userState.uid) {
         }
 
         // 21.1 - Toggle Listening
-        function toggleVoiceListening() {
-            if (!recognition) return;
+function toggleVoiceListening() {
+    if (!recognition) return;
 
-            if (userState.runtime.isListening) {
-                recognition.stop();
-                return; // Stop logic handles UI reset
-            }
+    if (userState.runtime.isListening) {
+        recognition.stop();
+        return; // Stop logic handles UI reset
+    }
 
-            try {
-                recognition.start();
-            } catch (e) {
-                console.log("Recognition already started");
-            }
-        }
+    try {
+        // === YAHAN NAYA LOGIC ADD KIYA HAI ===
+        // System ko batayega ki command aawaz (voice) se aayi hai
+        userState.runtime.inputType = 'voice'; 
+        // =====================================
+
+        recognition.start();
+    } catch (e) {
+        console.log("Recognition already started");
+    }
+}
 
         // 21.2 - Recognition Event Listeners
         if (recognition) {
@@ -1898,9 +1960,31 @@ async function processCommand(rawText) {
 
 // 2. HYBRID VOICE ENGINE (ELEVENLABS + ROYAL BROWSER FALLBACK)
 async function speakResponse(text) {
-    // UI Updates
-    if (dom.outputText) dom.outputText.innerText = text;
+    
+    // 1. CHAT LOG UPDATE (Ye hamesha chalega, chahe aawaz ho ya text)
     if (typeof addToChatLog === 'function') addToChatLog(text, 'jarvis');
+
+    // Check karte hain ki command kahan se aayi thi
+    const isVoiceMode = (userState.runtime.inputType === 'voice');
+
+    // 2. CORE SCREEN TEXT UPDATE
+    if (dom.outputText) {
+        if (isVoiceMode) {
+            dom.outputText.innerText = text; // Agar voice se pucha hai toh Main screen par text dikhao
+        } else {
+            dom.outputText.innerText = "";   // Agar likh kar pucha hai, toh Main screen clear rakho
+        }
+    }
+
+    // 3. MUTE CHECK (Agar text se pucha tha, toh aage ka code nahi chalega, Jarvis chup rahega)
+    if (!isVoiceMode) {
+        console.log("Text Mode: Jarvis ne sirf likh kar jawab diya hai (No TTS).");
+        return; // Ye 'return' aage wale Elevenlabs/Browser aawaz ko chalne nahi dega!
+    }
+
+    // ==========================================================
+    // YAHAN SE NICHE KA CODE SIRF TAB CHALEGA JAB 'MIC' USE HUA HO
+    // ==========================================================
 
     // Fetch Admin Voice Config
     const snap = await db.ref('system_config/voice_matrix').once('value');
@@ -1950,70 +2034,6 @@ async function speakResponse(text) {
 
         synth.speak(ut);
     }
-}
-
-// 3. AI ENGINE (DeepSeek R1 via OpenRouter)
-async function askJarvisAI(query) {
-    const snap = await firebase.database().ref('system_config/ai_core').once('value');
-    const cfg = snap.val();
-
-    if (!cfg || !cfg.api_key) return speakResponse("Sir, API key is missing. Update Admin Panel.");
-
-    let modelsToTry = [cfg.model_primary, cfg.model_secondary, cfg.model_backup];
-
-    for (let currentModel of modelsToTry) {
-        if (!currentModel) continue;
-        try {
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${cfg.api_key}`,
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": window.location.origin,
-                    "X-Title": "Jarvis AI"
-                },
-                body: JSON.stringify({
-                    "model": currentModel,
-                    "messages": [
-                        {"role": "system", "content": cfg.system_prompt || "You are JARVIS, a royal AI by Akshay. Call him Sir. Be smart."},
-                        {"role": "user", "content": query}
-                    ]
-                })
-            });
-            const data = await response.json();
-            if (data.choices && data.choices[0]) {
-                return speakResponse(data.choices[0].message.content);
-            }
-        } catch (e) { console.error("Model busy, switching..."); }
-    }
-    speakResponse("Sir, all neural pathways are congested.");
-}
-
-// 4. WEATHER ENGINE
-async function getJarvisWeather() {
-    const snap = await db.ref('system_config/ai_core').once('value');
-    const key = snap.val()?.weather_key;
-    if (!key) return speakResponse("Sir, Weather API key is missing.");
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&appid=${key}&units=metric`;
-            const res = await fetch(url);
-            const d = await res.json();
-            speakResponse(`Sir, in ${d.name} it's ${Math.round(d.main.temp)} degrees with ${d.weather[0].description}.`);
-        } catch (e) { speakResponse("Weather update failed, Sir."); }
-    }, () => speakResponse("Sir, please enable location."));
-}
-
-// 5. HUD MOOD ENGINE
-function updateJarvisMood(mood) {
-    const core = document.querySelector('.core-center');
-    if(!core) return;
-    core.style.transition = "all 0.8s ease";
-    if (mood === 'happy') core.style.boxShadow = "0 0 40px #00ff9d";
-    else if (mood === 'angry') core.style.boxShadow = "0 0 50px #ff003c";
-    else if (mood === 'thinking') core.style.boxShadow = "0 0 40px #bc13fe";
-    else core.style.boxShadow = "0 0 20px var(--color-core-cyan-glow)";
 }
         /* 
            ==========================================================================
@@ -2407,13 +2427,18 @@ function renderChatMessageUI(text, sender) {
     setTimeout(() => { container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }); }, 50);
 }
 
-// 4. Send Message from Text Box (Type karke bhejna)
 function sendManualCommand() {
     const input = document.getElementById('manual-cmd-input');
     const text = input.value.trim();
+    
     if(text) {
+        // === YAHAN NAYA LOGIC ADD KIYA HAI ===
+        // System ko batayega ki command text (likh kar) aayi hai
+        userState.runtime.inputType = 'text'; 
+        // =====================================
+
         addToChatLog(text, 'user'); 
-        processCommand(text); 
+        processCommand(text); // AI isko process karega
         input.value = ''; // Text box khali karo
     }
 }
