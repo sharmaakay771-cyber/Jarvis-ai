@@ -1825,27 +1825,34 @@ async function loadUserProfile(uid = userState.uid) {
             showToast("Voice Control Unavailable (Use Chrome)", "warning");
         }
 
-        // 21.1 - Toggle Listening
+        // 21.1 - Toggle Listening (DEBUG VERSION)
 function toggleVoiceListening() {
-    if (!recognition) return;
+    // Check 1: Click kaam kar raha hai ya nahi?
+    // alert("Mic Click Hua!"); // Agar click hi nahi hoga toh ye alert nahi aayega
 
-    if (userState.runtime.isListening) {
+    // Check 2: Mic (Speech API) supported hai ya nahi?
+    if (typeof recognition === 'undefined' || !recognition) {
+        alert("Sir, Mic system (Speech API) load nahi hua hai ya browser support nahi kar raha.");
+        return; 
+    }
+
+    if (userState && userState.runtime && userState.runtime.isListening) {
         recognition.stop();
-        return; // Stop logic handles UI reset
+        return;
     }
 
     try {
-        // === YAHAN NAYA LOGIC ADD KIYA HAI ===
-        // System ko batayega ki command aawaz (voice) se aayi hai
+        // Safe tareeke se inputType set karna taaki crash na ho
+        if (!userState.runtime) userState.runtime = {};
         userState.runtime.inputType = 'voice'; 
-        // =====================================
 
         recognition.start();
     } catch (e) {
-        console.log("Recognition already started");
+        // Check 3: Agar start hone me error aayi toh ye dikhega
+        alert("Mic Start Error: " + e.message);
+        console.log("Recognition error: ", e);
     }
 }
-
         // 21.2 - Recognition Event Listeners
         if (recognition) {
             
