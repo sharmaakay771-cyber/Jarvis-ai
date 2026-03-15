@@ -1910,26 +1910,23 @@ async function loadUserProfile(uid = userState.uid) {
                 }
             };
         }
-
 /* ==========================================================================
    JARVIS MASTER ENGINE FIX (100% BUG FREE & INSTANT)
    ========================================================================== */
 
-// 1. UI RESET HELPER (Majeed Robust Banaya Gaya Hai)
+// 1. UI RESET HELPER
 let resetTimer;
 function resetJarvisUI() {
     clearTimeout(resetTimer);
     resetTimer = setTimeout(() => {
         if(typeof updateJarvisMood === 'function') updateJarvisMood('default');
+        // ID FIXED: activator se core-container kiya gaya hai
         const core = document.getElementById('jarvis-core-container');
         if(core) core.classList.remove('animate-spin');
-        
-        // Output text ko thodi der baad clear karne ke liye (Optional)
-        // if(typeof dom !== 'undefined' && dom.outputText) dom.outputText.innerText = "";
     }, 2000);
 }
 
-// 2. MAIN COMMAND ROUTER (Fixed Hanging & Popup Block Issue)
+// 2. MAIN COMMAND ROUTER (Fixed Hanging Issue)
 async function processCommand(rawText) {
     const cmd = rawText.toLowerCase().trim();
     if (!cmd) return;
@@ -1950,16 +1947,10 @@ async function processCommand(rawText) {
 
     if (cmd.includes('youtube') || cmd.includes('यूट्यूब')) {
         speakResponse("Opening YouTube, Sir.");
-        
-        // POP-UP BLOCKER FIX (Agar new tab block ho, toh same tab me khulega)
         setTimeout(() => {
             let ytTab = window.open("https://www.youtube.com", "_blank");
-            if (!ytTab) {
-                // Agar Chrome ne Popup block kar diya, toh current page par hi YouTube khol dega
-                window.location.href = "https://www.youtube.com"; 
-            }
-        }, 500); // Aawaz aane ka thoda time dega
-        
+            if (!ytTab) window.location.href = "https://www.youtube.com"; 
+        }, 500);
         resetJarvisUI(); return; 
     }
 
@@ -1974,7 +1965,7 @@ async function processCommand(rawText) {
         resetJarvisUI(); return;
     }
 
-    // B. DeepSeek AI Fallback (With Safe Try/Catch)
+    // B. DeepSeek AI Fallback
     if(typeof toggleLoader === 'function') toggleLoader(true, "CONSULTING NEURAL PATHWAYS...");
     try {
         await askJarvisAI(rawText);
@@ -2022,10 +2013,9 @@ function renderChatMessageUI(text, sender) {
     setTimeout(() => { container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }); }, 50);
 }
 
-// 4. DIRECT LOGGER (Safe Firebase Check)
+// 4. DIRECT LOGGER
 function addToChatLog(text, sender) {
     renderChatMessageUI(text, sender); 
-    
     if (typeof userState !== 'undefined' && userState?.uid && typeof firebase !== 'undefined') {
         firebase.database().ref(`users/${userState.uid}/chat_history`).push({
             text: text, sender: sender, timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -2046,34 +2036,25 @@ function loadChatHistoryFromDB() {
             Object.values(chats).sort((a,b) => a.timestamp - b.timestamp).forEach(chat => {
                 renderChatMessageUI(chat.text, chat.sender);
             });
-        } else {
-            container.innerHTML = '<div style="text-align: center; color: #8899a6; font-size: 12px; margin-top: 40px; font-style: italic;">Secure Chat Protocol Initiated...</div>';
         }
     });
 }
 
-// 6. SEND MANUAL COMMAND FIX
+// 6. SEND MANUAL COMMAND
 function sendManualCommand() {
     const input = document.getElementById('manual-cmd-input');
     if(!input) return;
     const text = input.value.trim();
     if(text) {
-        // YE LINE ADD KARNA ZAROORI HAI
-        userState.runtime.inputType = 'text'; 
-        
+        userState.runtime.inputType = 'text'; // Mute Jarvis when typing
         addToChatLog(text, 'user'); 
         processCommand(text); 
         input.value = ''; 
     }
 }
 
-
-/* ==========================================================
-   3. AI ENGINE (DeepSeek R1 via OpenRouter)
-   ========================================================== */
+// 7. AI ENGINE (OpenRouter)
 async function askJarvisAI(query) {
-    if(typeof firebase === 'undefined') return speakResponse("Sir, Database is offline.");
-    
     const snap = await firebase.database().ref('system_config/ai_core').once('value');
     const cfg = snap.val();
 
@@ -2089,9 +2070,9 @@ async function askJarvisAI(query) {
                 "X-Title": "Jarvis AI"
             },
             body: JSON.stringify({
-                "model": "deepseek/deepseek-r1:free",
+                "model": cfg.model_primary || "deepseek/deepseek-r1:free",
                 "messages":[
-                    {"role": "system", "content": "You are JARVIS, a royal AI by Akshay. Call him Sir. Be smart. Give short answers."},
+                    {"role": "system", "content": "You are JARVIS, a royal AI by Akshay. Call him Sir. Be smart and short."},
                     {"role": "user", "content": query}
                 ]
             })
@@ -2101,17 +2082,14 @@ async function askJarvisAI(query) {
             return speakResponse(data.choices[0].message.content);
         }
     } catch (e) {
-        console.error("AI Fetch Error:", e);
-        throw new Error("Neural Path Blocked");
+        throw new Error("Neural Connection Failed");
     }
 }
 
-// 2. HYBRID VOICE ENGINE (CRASH-PROOF)
+// 8. HYBRID VOICE ENGINE
 async function speakResponse(text) {
-    
     if (typeof addToChatLog === 'function') addToChatLog(text, 'jarvis');
 
-    // Safe Check for userState (Taaki code crash na ho)
     const isVoiceMode = (typeof userState !== 'undefined' && userState?.runtime?.inputType === 'voice');
 
     if (typeof dom !== 'undefined' && dom.outputText) {
@@ -2119,15 +2097,13 @@ async function speakResponse(text) {
         else dom.outputText.innerText = "";   
     }
 
-    if (!isVoiceMode) return; // Sirf text mode ho toh yahan se wapas
+    if (!isVoiceMode) return; 
 
     try {
-        // ERROR FIX: 'db.ref' ki jagah 'firebase.database().ref' (Ye hi main crash ka kaaran tha)
         const snap = await firebase.database().ref('system_config/voice_matrix').once('value');
         const cfg = snap.val();
         const isHindi = /[अ-ह]/.test(text);
 
-        // --- OPTION A: ELEVENLABS ---
         if (cfg && cfg.use_hq && cfg.api_key) {
             const voiceId = isHindi ? cfg.voice_hi : cfg.voice_en;
             if (voiceId) {
@@ -2148,28 +2124,21 @@ async function speakResponse(text) {
                 }
             }
         }
-    } catch (error) {
-        console.warn("Firebase/Elevenlabs Voice error. Switching to Browser Voice.", error);
-    }
+    } catch (error) { console.warn("Voice error, switching to browser."); }
 
-   // --- OPTION B: BROWSER FALLBACK (FORCE ROYAL MALE VOICE) ---
     const synth = window.speechSynthesis;
     if (synth) {
         synth.cancel();
         const ut = new SpeechSynthesisUtterance(text);
-        
         ut.pitch = 0.8; 
         ut.rate = 1.0;  
-        
         const voices = synth.getVoices();
-        // Mobile Safe Voice Check
-        const bestVoice = voices.find(v => v.name.includes('UK English Male') || v.name.includes('UK') || v.lang === 'en-GB') || voices[0];
-        
+        const bestVoice = voices.find(v => v.lang === 'en-GB') || voices[0];
         if (bestVoice) ut.voice = bestVoice; 
-
         synth.speak(ut);
     }
 }
+
         /* 
            ==========================================================================
            24.0 - PREMIUM FEATURE GATES & LOGIC
