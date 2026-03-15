@@ -1921,7 +1921,7 @@ function resetJarvisUI() {
     clearTimeout(resetTimer);
     resetTimer = setTimeout(() => {
         if(typeof updateJarvisMood === 'function') updateJarvisMood('default');
-        const core = document.getElementById('jarvis-activator');
+        const core = document.getElementById('jarvis-core-container');
         if(core) core.classList.remove('animate-spin');
         
         // Output text ko thodi der baad clear karne ke liye (Optional)
@@ -1936,7 +1936,7 @@ async function processCommand(rawText) {
 
     // Visual Feedback ON
     if(typeof updateJarvisMood === 'function') updateJarvisMood('thinking');
-    const core = document.getElementById('jarvis-activator');
+    const core = document.getElementById('jarvis-core-container');
     if(core) core.classList.add('animate-spin');
 
     // Safe DOM Check
@@ -2058,11 +2058,15 @@ function sendManualCommand() {
     if(!input) return;
     const text = input.value.trim();
     if(text) {
+        // YE LINE ADD KARNA ZAROORI HAI
+        userState.runtime.inputType = 'text'; 
+        
         addToChatLog(text, 'user'); 
         processCommand(text); 
         input.value = ''; 
     }
 }
+
 
 /* ==========================================================
    3. AI ENGINE (DeepSeek R1 via OpenRouter)
