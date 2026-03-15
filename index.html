@@ -1955,12 +1955,11 @@ async function processCommand(rawText) {
     toggleLoader(true, "JARVIS IS THINKING...");
     try {
         await askJarvisAI(rawText);
-    } catch (e) {
-        speakResponse("Sir, I am unable to connect to my neural network.");
-    } finally {
-        toggleLoader(false);
-        setTimeout(() => updateJarvisMood('default'), 5000);
-    }
+  } catch (e) {
+    console.error("Neural Connection Error:", e);
+    speakResponse("Sir, problem mere connection mein nahi, " + e.message + " mein hai.");
+}
+
 }
 
 // 2. HYBRID VOICE ENGINE (ELEVENLABS + ROYAL BROWSER FALLBACK)
