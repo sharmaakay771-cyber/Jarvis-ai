@@ -1105,8 +1105,8 @@
     </p>
 </div>
         <!-- ADVANCED JARVIS AI CORE -->
-<!-- Note: 'onclick' me jo function likha hai, wo aapke purane code wala hi rakhna (jaise startListening() ya startDictation()) -->
-<div id="jarvis-core-container" class="core-container" onclick="startListening()">
+<!-- Yahan startListening() ki jagah toggleVoiceListening() kar diya hai -->
+<div id="jarvis-core-container" class="core-container" onclick="toggleVoiceListening()">
     
     <!-- Rotating Rings -->
     <div class="core-ring-1"></div>
@@ -1317,33 +1317,35 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        /* 
-           ==========================================================================
-           16.0 - GLOBAL STATE MANAGEMENT
-           ==========================================================================
-        */
-       let introPlayed = false; // Line 1273 par ye paste karein 
-        const userState = {
-            isAuthenticated: false,
-            uid: null,
-            profile: null,
-            settings: {
-                soundEnabled: true,
-                animationsEnabled: true,
-                voiceName: 'Jarvis',
-                wakeWord: true
-            },
-            runtime: {
-                isListening: false,
-                currentView: 'home',
-                lastCommand: null,
-                sessionStart: Date.now()
-            },
-            permissions: {
-                mic: false,
-                location: false
-            }
-        };
+      /* ==========================================================================
+   16.0 - GLOBAL STATE MANAGEMENT (UPDATED FOR VOICE/TEXT LOGIC)
+   ==========================================================================
+*/
+let introPlayed = false; 
+
+const userState = {
+    isAuthenticated: false,
+    uid: null,
+    profile: null,
+    settings: {
+        soundEnabled: true,
+        animationsEnabled: true,
+        voiceName: 'Jarvis',
+        wakeWord: true
+    },
+    runtime: {
+        isListening: false,
+        currentView: 'home',
+        // --- YE PROPERTY ADD KAR DI HAI ---
+        inputType: 'voice', // Default 'voice' rakha hai
+        lastCommand: null,
+        sessionStart: Date.now()
+    },
+    permissions: {
+        mic: false,
+        location: false
+    }
+};
 
         // DOM Element Cache (Performance Optimization)
         const dom = {
@@ -1803,9 +1805,8 @@ async function loadUserProfile(uid = userState.uid) {
             }
         }
 
-        /* 
-           ==========================================================================
-           21.0 - JARVIS CORE: VOICE RECOGNITION (WEB SPEECH API)
+               /* ==========================================================================
+           21.0 - JARVIS CORE: VOICE RECOGNITION (WEB SPEECH API) - FIXED BY GEMINI
            ==========================================================================
         */
 
@@ -1816,7 +1817,7 @@ async function loadUserProfile(uid = userState.uid) {
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = false; // Stop after one sentence
+            recognition.continuous = false; 
             recognition.lang = 'en-US';
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
@@ -1825,94 +1826,91 @@ async function loadUserProfile(uid = userState.uid) {
             showToast("Voice Control Unavailable (Use Chrome)", "warning");
         }
 
-        // 21.1 - Toggle Listening (DEBUG VERSION)
-function toggleVoiceListening() {
-    // Check 1: Click kaam kar raha hai ya nahi?
-    // alert("Mic Click Hua!"); // Agar click hi nahi hoga toh ye alert nahi aayega
+        // --- NEW: THE MISSING TRIGGER FUNCTION ---
+        function toggleVoiceListening() {
+            if (!recognition) {
+                showToast("Voice Module Not Supported", "error");
+                return;
+            }
 
-    // Check 2: Mic (Speech API) supported hai ya nahi?
-    if (typeof recognition === 'undefined' || !recognition) {
-        alert("Sir, Mic system (Speech API) load nahi hua hai ya browser support nahi kar raha.");
-        return; 
-    }
+            if (userState.runtime.isListening) {
+                recognition.stop();
+                return;
+            }
 
-    if (userState && userState.runtime && userState.runtime.isListening) {
-        recognition.stop();
-        return;
-    }
+            try {
+                // SET MODE: Voice (Taaki Jarvis jawab bol kar sunaye)
+                userState.runtime.inputType = 'voice'; 
+                recognition.start();
+                console.log("SYSTEM: Mic Active. Mode: VOICE");
+            } catch (e) {
+                console.error("Mic start failed:", e);
+            }
+        }
+        // Isse HTML onclick ko ye function 100% mil jayega
+        window.toggleVoiceListening = toggleVoiceListening;
 
-    try {
-        // Safe tareeke se inputType set karna taaki crash na ho
-        if (!userState.runtime) userState.runtime = {};
-        userState.runtime.inputType = 'voice'; 
-
-        recognition.start();
-    } catch (e) {
-        // Check 3: Agar start hone me error aayi toh ye dikhega
-        alert("Mic Start Error: " + e.message);
-        console.log("Recognition error: ", e);
-    }
-}
+        
         // 21.2 - Recognition Event Listeners
         if (recognition) {
             
-            // ON START
             recognition.onstart = () => {
                 userState.runtime.isListening = true;
                 
                 // UI Feedback
-                dom.statusText.innerText = "LISTENING...";
-                dom.statusText.classList.add('text-cyan');
-                dom.micIcon.classList.add('text-red-500');
-                dom.micIcon.classList.remove('text-black');
+                if(dom.statusText) dom.statusText.innerText = "LISTENING...";
+                if(dom.micIcon) {
+                    dom.micIcon.classList.add('text-red-500');
+                    dom.micIcon.classList.remove('text-black');
+                }
                 
-                // Core Animation
-                dom.jarvisCore.classList.add('animate-pulse');
-                dom.listeningRipple.style.opacity = '1';
-                dom.listeningRipple.style.animation = 'listenRipple 1.5s infinite';
+                // Core Animation Start
+                if(dom.jarvisCore) dom.jarvisCore.classList.add('animate-pulse');
+                if(dom.listeningRipple) {
+                    dom.listeningRipple.style.opacity = '1';
+                    dom.listeningRipple.style.animation = 'listenRipple 1.5s infinite';
+                }
                 
                 playSound('sfxVoiceActive');
             };
 
-            // ON END
             recognition.onend = () => {
                 userState.runtime.isListening = false;
                 
                 // UI Reset
-                dom.statusText.innerText = "TAP TO SPEAK";
-                dom.statusText.classList.remove('text-cyan');
-                dom.micIcon.classList.remove('text-red-500');
-                dom.micIcon.classList.add('text-black');
+                if(dom.statusText) dom.statusText.innerText = "TAP TO SPEAK";
+                if(dom.micIcon) {
+                    dom.micIcon.classList.remove('text-red-500');
+                    dom.micIcon.classList.add('text-black');
+                }
                 
                 // Stop Animation
-                dom.jarvisCore.classList.remove('animate-pulse');
-                dom.listeningRipple.style.opacity = '0';
-                dom.listeningRipple.style.animation = 'none';
+                if(dom.jarvisCore) dom.jarvisCore.classList.remove('animate-pulse');
+                if(dom.listeningRipple) {
+                    dom.listeningRipple.style.opacity = '0';
+                    dom.listeningRipple.style.animation = 'none';
+                }
             };
 
-            // ON RESULT (The Brain)
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                const confidence = event.results[0][0].confidence;
                 
-                console.log(`Input: ${transcript} (${confidence})`);
+                // Input Type is already set to 'voice' in toggle function
+                if(dom.outputText) dom.outputText.innerText = `"${transcript}"`;
                 
-                // Display Input
-                dom.outputText.innerText = `"${transcript}"`;
-                
-                // Process Command
+                // Process the speech
                 processCommand(transcript);
             };
 
-            // ON ERROR
             recognition.onerror = (event) => {
                 console.error("Voice Error", event.error);
-                dom.outputText.innerText = "System Error. Retrying...";
+                if(dom.outputText) dom.outputText.innerText = "System Error. Retrying...";
                 if(event.error === 'no-speech') {
                     showToast("No audio detected", "warning");
                 }
             };
         }
+
 /* ==========================================================================
    JARVIS ULTIMATE INTEGRATED BRAIN (AI + WEATHER + HYBRID ROYAL VOICE)
    ========================================================================== */
