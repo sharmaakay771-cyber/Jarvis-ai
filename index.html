@@ -1106,67 +1106,38 @@
 </div>
         <!-- ADVANCED JARVIS AI CORE -->
 <!-- Yahan startListening() ki jagah toggleVoiceListening() kar diya hai -->
-<div id="jarvis-core-container" class="core-container" onclick="toggleVoiceListening()">
+<div class="flex-col flex-center" style="margin-top: 5vh;">
     
-    <!-- Rotating Rings -->
-    <div class="core-ring-1"></div>
-    <div class="core-ring-2"></div>
-    <div class="core-ring-3"></div>
-    
-    <!-- Main Glowing Energy Core -->
-    <div class="core-orb">
-        <i class="fas fa-microphone core-mic"></i>
+    <div style="text-align: center; margin-bottom: 25px; z-index: 100; position: relative;">
+        <button id="wake-toggle" onclick="toggleWakeWord()" style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.3); color: #00f3ff; padding: 10px 25px; border-radius: 30px; font-size: 11px; font-family: 'Orbitron'; cursor: pointer; transition: 0.4s; box-shadow: 0 0 15px rgba(0, 243, 255, 0.1); letter-spacing: 2px; text-transform: uppercase;">
+            <i class="fas fa-circle" id="wake-icon" style="margin-right: 10px; font-size: 9px; color: #555;"></i> Wake Word: Off
+        </button>
     </div>
 
+    <div id="jarvis-core-container" class="core-container" onclick="toggleVoiceListening()" style="margin-top: 0;">
+        <div class="core-ring-1"></div>
+        <div class="core-ring-2"></div>
+        <div class="core-ring-3"></div>
+        <div class="core-orb">
+            <i class="fas fa-microphone core-mic"></i>
+        </div>
+    </div>
+
+    <div class="absolute bottom-6 w-full px-4 flex-row justify-center gap-3 overflow-x-auto no-scrollbar" style="z-index: 10;">
+        <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Open YouTube')">
+            <i class="fab fa-youtube text-red-500 mr-2"></i>YOUTUBE
+        </button>
+        <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Weather report')">
+            <i class="fas fa-cloud-sun text-blue-400 mr-2"></i>WEATHER
+        </button>
+        <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Tell me a joke')">
+            <i class="fas fa-smile text-yellow-400 mr-2"></i>JOKE
+        </button>
+    </div>
 </div>
-            <!-- Quick Suggestions (Bade aur saaf buttons) -->
-            <div class="absolute bottom-6 w-full px-4 flex-row justify-center gap-3 overflow-x-auto no-scrollbar">
-                <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Open YouTube')">
-                    <i class="fab fa-youtube text-red-500 mr-2"></i>YOUTUBE
-                </button>
-                <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Weather report')">
-                    <i class="fas fa-cloud-sun text-blue-400 mr-2"></i>WEATHER
-                </button>
-                <button class="px-5 py-3 rounded-xl border border-cyan/20 bg-cyan/5 text-[11px] text-white font-bold whitespace-nowrap active:bg-cyan/20" onclick="processCommand('Tell me a joke')">
-                    <i class="fas fa-smile text-yellow-400 mr-2"></i>JOKE
-                </button>
-            </div>
-        </div>
+
         
-        <!-- VIEW 2: APPS (Grid Style Fixed) -->
-        <div id="view-commands" class="view-panel w-full h-full flex-col p-6 overflow-y-auto">
-            <h2 class="font-hud text-xl text-white mb-8 border-l-4 border-cyan pl-3">SYSTEM APPS</h2>
-            
-            <div class="grid grid-cols-2 gap-4 w-full">
-                <div class="card-glass flex-col flex-center gap-3 py-8" onclick="processCommand('Turn on flashlight')">
-                    <i class="fas fa-lightbulb text-yellow-400 text-4xl"></i>
-                    <span class="text-xs text-white font-bold tracking-widest">TORCH</span>
-                </div>
-                
-                <div class="card-glass flex-col flex-center gap-3 py-8" onclick="processCommand('Open Camera')">
-                    <i class="fas fa-camera text-cyan text-4xl"></i>
-                    <span class="text-xs text-white font-bold tracking-widest">CAMERA</span>
-                </div>
-
-                <div class="card-glass flex-col flex-center gap-3 py-8" onclick="processCommand('Set Alarm')">
-                    <i class="fas fa-clock text-purple text-4xl"></i>
-                    <span class="text-xs text-white font-bold tracking-widest">ALARM</span>
-                </div>
-
-                <div class="card-glass flex-col flex-center gap-3 py-8" onclick="processCommand('Check System Stats')">
-                    <i class="fas fa-microchip text-green-400 text-4xl"></i>
-                    <span class="text-xs text-white font-bold tracking-widest">STATS</span>
-                </div>
-            </div>
-
-            <!-- Upgrade Banner -->
-            <div class="mt-8 p-5 rounded-2xl border border-gold/30 bg-gold/5 relative overflow-hidden">
-                <h3 class="text-gold font-bold text-sm mb-1">PREMIUM OVERRIDE</h3>
-                <p class="text-[10px] text-white/50">Automation & Advanced Neural Protocols</p>
-                <button class="mt-4 w-full py-2 bg-gold text-black font-bold text-[10px] rounded-lg" onclick="navigateTo('profile')">UPGRADE IDENTITY</button>
-            </div>
-        </div>
-
+        
  
      <!-- ==========================================================================
            VIEW 4: IDENTITY MATRIX (CRASH-PROOF & ROYAL)
@@ -2807,6 +2778,65 @@ setTimeout(unlockJarvisInterface, 3000);
            36.0 - END OF USER PANEL DOCUMENT
            ==========================================================================
         */
+
+// --- WAKE WORD ENGINE (Passive Listening) ---
+let wakeWordActive = false;
+let passiveRec;
+
+function toggleWakeWord() {
+    const btn = document.getElementById('wake-toggle');
+    const icon = document.getElementById('wake-icon');
+
+    if (!wakeWordActive) {
+        startPassive();
+        wakeWordActive = true;
+        btn.style.boxShadow = "0 0 25px #00f3ff";
+        btn.style.borderColor = "#00f3ff";
+        btn.innerHTML = '<i class="fas fa-circle" id="wake-icon" style="margin-right: 10px; font-size: 9px; color: #00f3ff; text-shadow: 0 0 10px #00f3ff;"></i> Wake Word: Active';
+        showToast("System monitoring for 'Jarvis' command...", "success");
+    } else {
+        stopPassive();
+        wakeWordActive = false;
+        btn.style.boxShadow = "none";
+        btn.style.borderColor = "rgba(0, 243, 255, 0.3)";
+        btn.innerHTML = '<i class="fas fa-circle" id="wake-icon" style="margin-right: 10px; font-size: 9px; color: #555;"></i> Wake Word: Off';
+    }
+}
+
+function startPassive() {
+    if (!window.webkitSpeechRecognition) return;
+    passiveRec = new webkitSpeechRecognition();
+    passiveRec.continuous = true;
+    passiveRec.lang = 'en-US';
+    
+    passiveRec.onresult = (e) => {
+        const text = e.results[e.results.length - 1][0].transcript.toLowerCase();
+        console.log("HUD Passive Listening: " + text);
+        
+        // Agar 'Jarvis' suna de toh toggleVoiceListening call hoga
+        if (text.includes("jarvis") || text.includes("hey jarvis")) {
+            stopPassive(); // Stop passive listening temporarily
+            if (typeof playSound === 'function') playSound('sfxVoiceActive');
+            
+            // Trigger main voice listening
+            toggleVoiceListening(); 
+        }
+    };
+
+    passiveRec.onend = () => {
+        if (wakeWordActive) passiveRec.start(); // Auto-restart agar manually off nahi kiya
+    };
+
+    passiveRec.start();
+}
+
+function stopPassive() {
+    if (passiveRec) {
+        passiveRec.onend = null;
+        passiveRec.stop();
+    }
+}
+
 
     </script>
 </body>
