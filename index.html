@@ -503,6 +503,12 @@
     box-shadow: 0 0 22px rgba(0, 243, 255, 0.2);
 }
 
+.pulse-core-btn:focus-visible,
+.chat-send-btn:focus-visible {
+    outline: 2px solid var(--color-core-cyan);
+    outline-offset: 2px;
+}
+
 .jarvis-chat-window {
     background: rgba(10, 18, 36, 0.68);
     border: 1px solid rgba(0,243,255,0.2);
@@ -1146,7 +1152,7 @@
 
             <!-- Right: Status & Settings -->
             <div class="flex-center gap-3">
-                <div class="hidden sm:flex flex-col text-right">
+                <div class="hidden sm:flex flex-col text-right" aria-live="polite">
                     <span id="system-time" class="text-cyan text-sm font-hud tracking-wider">00:00:00</span>
                     <span id="system-date" class="text-[10px] text-dim uppercase tracking-[2px]">Initializing Date</span>
                 </div>
@@ -1231,7 +1237,7 @@
                         <h2 class="font-hud text-cyan text-lg uppercase tracking-[3px] mb-3">Arc Core Nexus</h2>
                         <p class="text-dim text-xs mb-3">Tap the core to pulse and engage Jarvis systems.</p>
                         <div class="flex-center">
-                            <button class="px-5 py-2 rounded-xl border border-cyan/40 bg-cyan/10 text-cyan text-xs font-hud tracking-[2px]" onclick="handleCoreClick()">Pulse Core</button>
+                            <button class="pulse-core-btn px-5 py-2 rounded-xl border border-cyan/40 bg-cyan/10 text-cyan text-xs font-hud tracking-[2px]" onclick="handleCoreClick()" aria-label="Activate Jarvis core pulse animation">Pulse Core</button>
                         </div>
                     </section>
 
@@ -1241,8 +1247,8 @@
                             <div class="text-dim text-xs">Jarvis: Welcome back, Commander.</div>
                         </div>
                         <div class="mt-3 flex gap-2">
-                            <input id="jarvis-chat-input" type="text" class="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-cyan/30 text-white text-sm" placeholder="Talk to Jarvis..." />
-                            <button onclick="sendJarvisChat()" class="px-3 py-2 rounded-lg border border-cyan/50 text-cyan text-xs font-bold">SEND</button>
+                            <input id="jarvis-chat-input" type="text" maxlength="180" autocomplete="off" class="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-cyan/30 text-white text-sm" placeholder="Talk to Jarvis..." aria-label="Chat message input" />
+                            <button onclick="sendJarvisChat()" class="chat-send-btn px-3 py-2 rounded-lg border border-cyan/50 text-cyan text-xs font-bold">SEND</button>
                         </div>
                     </section>
                 </div>
@@ -1378,6 +1384,7 @@
 
         if (typeof window.firebase === 'undefined') {
             const noopAsync = async () => ({ val: () => null });
+            const OFFLINE_AUTH_ERROR_MESSAGE = "Auth service unavailable in offline preview.";
             const mockRef = {
                 set: async () => {},
                 update: async () => {},
@@ -1387,8 +1394,16 @@
             window.firebase = {
                 initializeApp: () => {},
                 auth: () => ({
-                    createUserWithEmailAndPassword: async () => { throw new Error("Auth service unavailable in offline preview."); },
-                    signInWithEmailAndPassword: async () => { throw new Error("Auth service unavailable in offline preview."); },
+                    createUserWithEmailAndPassword: async () => {
+                        const error = new Error(OFFLINE_AUTH_ERROR_MESSAGE);
+                        error.code = 'auth/network-request-failed';
+                        throw error;
+                    },
+                    signInWithEmailAndPassword: async () => {
+                        const error = new Error(OFFLINE_AUTH_ERROR_MESSAGE);
+                        error.code = 'auth/network-request-failed';
+                        throw error;
+                    },
                     signOut: async () => {},
                     onAuthStateChanged: () => {}
                 }),
@@ -1567,6 +1582,7 @@ const userState = {
         function handleCoreClick() {
             if (dom.jarvisCore) {
                 dom.jarvisCore.classList.remove('core-click-pulse');
+                // Remove+add class alone won't replay CSS animation; reflow forces restart.
                 void dom.jarvisCore.offsetWidth;
                 dom.jarvisCore.classList.add('core-click-pulse');
             }
@@ -1575,6 +1591,7 @@ const userState = {
             }
         }
 
+        let terminalInitialized = false;
         function appendTerminalLog(message, delay = 0) {
             if (!dom.terminalLog) return;
             setTimeout(() => {
@@ -1586,20 +1603,22 @@ const userState = {
         }
 
         function initTerminalLogs() {
-            if (!dom.terminalLog || dom.terminalLog.dataset.initialized === 'true') return;
-            dom.terminalLog.dataset.initialized = 'true';
+            if (!dom.terminalLog || terminalInitialized) return;
+            terminalInitialized = true;
+            const TERMINAL_LINE_DELAY_MS = 450;
             const bootLines = [
                 'System initialization sequence start...',
                 'Neural core handshake complete.',
                 'Secure uplink established.',
                 'All modules online.'
             ];
-            bootLines.forEach((line, idx) => appendTerminalLog(line, idx * 450));
+            bootLines.forEach((line, idx) => appendTerminalLog(line, idx * TERMINAL_LINE_DELAY_MS));
         }
 
         function sendJarvisChat() {
             if (!dom.jarvisChatInput || !dom.jarvisChatMessages) return;
-            const text = dom.jarvisChatInput.value.trim();
+            const MAX_CHAT_INPUT_LENGTH = 180;
+            const text = dom.jarvisChatInput.value.trim().slice(0, MAX_CHAT_INPUT_LENGTH);
             if (!text) return;
 
             const userLine = document.createElement('div');
