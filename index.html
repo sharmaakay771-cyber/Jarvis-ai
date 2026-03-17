@@ -36,6 +36,7 @@
 
     <!-- FONT AWESOME (ICONS) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- ANIMATE.CSS (Optional helpers, though we write custom keyframes mostly) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -463,6 +464,80 @@
 @keyframes pulse-core {
     0% { transform: scale(0.95); box-shadow: 0 0 30px #00f3ff; filter: brightness(0.9); }
     100% { transform: scale(1.05); box-shadow: 0 0 60px #00f3ff, 0 0 120px rgba(0,243,255,0.7); filter: brightness(1.2); }
+}
+
+.core-container.core-click-pulse .core-orb {
+    animation: core-click-burst 0.7s ease-out;
+}
+
+@keyframes core-click-burst {
+    0% { transform: scale(1); box-shadow: 0 0 30px #00f3ff; }
+    50% { transform: scale(1.15); box-shadow: 0 0 90px #00f3ff, 0 0 140px rgba(0,243,255,0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 45px #00f3ff, 0 0 90px rgba(0,243,255,0.4); }
+}
+
+.future-dashboard {
+    width: 100%;
+    height: 100%;
+    padding: 90px 16px 96px;
+    overflow-y: auto;
+}
+
+.future-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.project-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0, 243, 255, 0.18);
+    border-radius: 14px;
+    padding: 14px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 243, 255, 0.5);
+    box-shadow: 0 0 22px rgba(0, 243, 255, 0.2);
+}
+
+.jarvis-chat-window {
+    background: rgba(10, 18, 36, 0.68);
+    border: 1px solid rgba(0,243,255,0.2);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-window {
+    background: rgba(0,0,0,0.72);
+    border: 1px solid rgba(0,243,255,0.22);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 14px;
+    font-family: var(--font-hud);
+    font-size: 11px;
+    color: #9ef7ff;
+}
+
+.terminal-log-line {
+    opacity: 0;
+    animation: fadeInLine 0.4s ease forwards;
+}
+
+@keyframes fadeInLine {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 960px) {
+    .future-dashboard { padding: 100px 24px 96px; }
+    .future-grid { grid-template-columns: 1.2fr 0.8fr; }
 }
 /* ==========================================================
    ROYAL ENTRY ANIMATION SYSTEM - CSS START
@@ -1070,7 +1145,14 @@
             </div>
 
             <!-- Right: Status & Settings -->
-            <div class="flex-center gap-4">
+            <div class="flex-center gap-3">
+                <div class="hidden sm:flex flex-col text-right">
+                    <span id="system-time" class="text-cyan text-sm font-hud tracking-wider">00:00:00</span>
+                    <span id="system-date" class="text-[10px] text-dim uppercase tracking-[2px]">Initializing Date</span>
+                </div>
+                <div id="system-status-badge" class="px-2 py-1 rounded border border-cyan/40 bg-cyan/10 text-[10px] text-cyan font-bold uppercase tracking-wider">
+                    System Status: Online
+                </div>
                 <!-- Plan Badge -->
                 <div id="plan-badge" class="px-2 py-1 rounded border border-gray-700 bg-white/5 text-[10px] text-dim font-bold uppercase tracking-wider">
                     FREE PLAN
@@ -1114,7 +1196,7 @@
         </button>
     </div>
 
-    <div id="jarvis-core-container" class="core-container" onclick="toggleVoiceListening()" style="margin-top: 0;">
+    <div id="jarvis-core-container" class="core-container" onclick="handleCoreClick()" style="margin-top: 0;">
         <div class="core-ring-1"></div>
         <div class="core-ring-2"></div>
         <div class="core-ring-3"></div>
@@ -1142,6 +1224,54 @@
      <!-- ==========================================================================
            VIEW 4: IDENTITY MATRIX (CRASH-PROOF & ROYAL)
            ========================================================================== -->
+        <div id="view-commands" class="view-panel w-full h-full flex-col">
+            <div class="future-dashboard">
+                <div class="future-grid">
+                    <section class="card-glass">
+                        <h2 class="font-hud text-cyan text-lg uppercase tracking-[3px] mb-3">Arc Core Nexus</h2>
+                        <p class="text-dim text-xs mb-3">Tap the core to pulse and engage Jarvis systems.</p>
+                        <div class="flex-center">
+                            <button class="px-5 py-2 rounded-xl border border-cyan/40 bg-cyan/10 text-cyan text-xs font-hud tracking-[2px]" onclick="handleCoreClick()">Pulse Core</button>
+                        </div>
+                    </section>
+
+                    <section class="jarvis-chat-window p-3">
+                        <div class="text-cyan text-xs font-hud tracking-[2px] mb-2">JARVIS CHAT</div>
+                        <div id="jarvis-chat-messages" class="flex-1 overflow-y-auto text-sm space-y-2 pr-1">
+                            <div class="text-dim text-xs">Jarvis: Welcome back, Commander.</div>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <input id="jarvis-chat-input" type="text" class="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-cyan/30 text-white text-sm" placeholder="Talk to Jarvis..." />
+                            <button onclick="sendJarvisChat()" class="px-3 py-2 rounded-lg border border-cyan/50 text-cyan text-xs font-bold">SEND</button>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="card-glass mt-4">
+                    <h3 class="font-hud text-white text-sm uppercase tracking-[2px] mb-3">Projects</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <article class="project-card">
+                            <p class="text-cyan text-xs font-hud uppercase tracking-[2px] mb-2">Cricket Game</p>
+                            <p class="text-dim text-xs">Interactive cricket gameplay prototype with arcade physics.</p>
+                        </article>
+                        <article class="project-card">
+                            <p class="text-cyan text-xs font-hud uppercase tracking-[2px] mb-2">AI Agent</p>
+                            <p class="text-dim text-xs">Autonomous assistant workflows with voice and command routing.</p>
+                        </article>
+                        <article class="project-card">
+                            <p class="text-cyan text-xs font-hud uppercase tracking-[2px] mb-2">Python Scripts</p>
+                            <p class="text-dim text-xs">Automation scripts for productivity, analysis, and system tasks.</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="terminal-window">
+                    <div class="text-cyan text-[10px] tracking-[2px] mb-2">SYSTEM TERMINAL</div>
+                    <div id="terminal-log" class="space-y-1"></div>
+                </section>
+            </div>
+        </div>
+
         <div id="view-profile" class="view-panel w-full h-full flex-col p-6 overflow-y-auto">
             
             <h2 class="font-hud text-xl text-white mb-6 border-l-4 border-purple pl-3 uppercase tracking-widest">Identity Matrix</h2>
@@ -1246,6 +1376,27 @@
   appId: "1:545059680914:web:308dbb661debd6c0fd6c4b"
 };
 
+        if (typeof window.firebase === 'undefined') {
+            const noopAsync = async () => ({ val: () => null });
+            const mockRef = {
+                set: async () => {},
+                update: async () => {},
+                once: noopAsync,
+                on: () => {}
+            };
+            window.firebase = {
+                initializeApp: () => {},
+                auth: () => ({
+                    createUserWithEmailAndPassword: async () => { throw new Error("Auth service unavailable in offline preview."); },
+                    signInWithEmailAndPassword: async () => { throw new Error("Auth service unavailable in offline preview."); },
+                    signOut: async () => {},
+                    onAuthStateChanged: () => {}
+                }),
+                database: () => ({ ref: () => mockRef })
+            };
+            window.firebase.database.ServerValue = { TIMESTAMP: Date.now() };
+        }
+
         // Initialize Firebase
         try {
             firebase.initializeApp(firebaseConfig);
@@ -1310,10 +1461,15 @@ const userState = {
             
             // HUD Elements
             jarvisCore: document.getElementById('jarvis-core-container'),
+            systemTime: document.getElementById('system-time'),
+            systemDate: document.getElementById('system-date'),
             micIcon: document.getElementById('mic-icon'),
             listeningRipple: document.getElementById('listening-ripple'),
             statusText: document.getElementById('listening-status'),
             outputText: document.getElementById('jarvis-output-text'),
+            terminalLog: document.getElementById('terminal-log'),
+            jarvisChatInput: document.getElementById('jarvis-chat-input'),
+            jarvisChatMessages: document.getElementById('jarvis-chat-messages'),
             
             // Profile Elements
             avatarDisplay: document.getElementById('user-avatar-display'),
@@ -1395,6 +1551,78 @@ const userState = {
                 // Trigger animation
             } else {
                 loader.style.display = 'none';
+            }
+        }
+
+        function initSystemClock() {
+            const updateClock = () => {
+                const now = new Date();
+                if (dom.systemTime) dom.systemTime.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+                if (dom.systemDate) dom.systemDate.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function handleCoreClick() {
+            if (dom.jarvisCore) {
+                dom.jarvisCore.classList.remove('core-click-pulse');
+                void dom.jarvisCore.offsetWidth;
+                dom.jarvisCore.classList.add('core-click-pulse');
+            }
+            if (typeof toggleVoiceListening === 'function') {
+                toggleVoiceListening();
+            }
+        }
+
+        function appendTerminalLog(message, delay = 0) {
+            if (!dom.terminalLog) return;
+            setTimeout(() => {
+                const line = document.createElement('div');
+                line.className = 'terminal-log-line';
+                line.textContent = `> ${message}`;
+                dom.terminalLog.appendChild(line);
+            }, delay);
+        }
+
+        function initTerminalLogs() {
+            if (!dom.terminalLog || dom.terminalLog.dataset.initialized === 'true') return;
+            dom.terminalLog.dataset.initialized = 'true';
+            const bootLines = [
+                'System initialization sequence start...',
+                'Neural core handshake complete.',
+                'Secure uplink established.',
+                'All modules online.'
+            ];
+            bootLines.forEach((line, idx) => appendTerminalLog(line, idx * 450));
+        }
+
+        function sendJarvisChat() {
+            if (!dom.jarvisChatInput || !dom.jarvisChatMessages) return;
+            const text = dom.jarvisChatInput.value.trim();
+            if (!text) return;
+
+            const userLine = document.createElement('div');
+            userLine.className = 'text-white text-xs';
+            userLine.textContent = `You: ${text}`;
+            dom.jarvisChatMessages.appendChild(userLine);
+
+            const jarvisLine = document.createElement('div');
+            jarvisLine.className = 'text-cyan text-xs';
+            jarvisLine.textContent = `Jarvis: Command acknowledged — ${text}`;
+            dom.jarvisChatMessages.appendChild(jarvisLine);
+
+            dom.jarvisChatInput.value = '';
+            dom.jarvisChatMessages.scrollTop = dom.jarvisChatMessages.scrollHeight;
+        }
+
+        function initDashboardInterface() {
+            initSystemClock();
+            initTerminalLogs();
+            if (dom.jarvisChatInput) {
+                dom.jarvisChatInput.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') sendJarvisChat();
+                });
             }
         }
 
@@ -2744,6 +2972,7 @@ setTimeout(unlockJarvisInterface, 3000);
         async function initJarvisUserPanel() {
             verifyIntegrity();
             initHudData();
+            initDashboardInterface();
             
             // Check for Terms Acceptance on every login
             auth.onAuthStateChanged(async (user) => {
